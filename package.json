@@ -19,7 +19,7 @@
     "@types/chardet": "^0.8.1",
     "@vitalets/google-translate-api": "^8.0.0",
     "adm-zip": "^0.5.2",
-    "axios": "^0.19.2",
+    "axios": "^0.21.2",
     "bing-translate-api": "^2.7.0",
     "copy-text-to-clipboard": "^2.2.0",
     "electron-is-dev": "^1.1.0",
