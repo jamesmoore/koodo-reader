@@ -45,8 +45,16 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
       if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
         this.props.history.push(BookUtil.getBookUrl(this.props.book));
       } else {
-        BookUtil.RedirectBook(this.props.book);
+        BookUtil.RedirectBook(this.props.book, this.props.t);
       }
+    }
+  }
+  UNSAFE_componentWillReceiveProps(nextProps: BookCardProps) {
+    if (nextProps.book.key !== this.props.book.key) {
+      this.setState({
+        isFavorite:
+          AddFavorite.getAllFavorite().indexOf(nextProps.book.key) > -1,
+      });
     }
   }
 
@@ -110,7 +118,7 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
     if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
       this.props.history.push(BookUtil.getBookUrl(this.props.book));
     } else {
-      BookUtil.RedirectBook(this.props.book);
+      BookUtil.RedirectBook(this.props.book, this.props.t);
     }
   };
   render() {
@@ -221,12 +229,14 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
                   this.handleMoreAction(event);
                 }}
               ></span>
-              <span
-                className="icon-love book-love-icon"
-                onClick={() => {
-                  this.handleLoveBook();
-                }}
-              ></span>
+              {!this.state.isFavorite && (
+                <span
+                  className="icon-love book-love-icon"
+                  onClick={() => {
+                    this.handleLoveBook();
+                  }}
+                ></span>
+              )}
             </>
           ) : null}
         </div>

@@ -3,7 +3,6 @@ import RecentBooks from "../../utils/readUtils/recordRecent";
 import { ViewerProps, ViewerState } from "./interface";
 import localforage from "localforage";
 import { withRouter } from "react-router-dom";
-import _ from "underscore";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import { toast } from "react-hot-toast";
 import BackToMain from "../../components/backToMain";
@@ -28,12 +27,12 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         book = this.props.currentBook;
       } else {
         book =
-          result[_.findIndex(result, { key })] ||
+          result[window._.findIndex(result, { key })] ||
           JSON.parse(localStorage.getItem("tempBook") || "{}");
       }
       BookUtil.fetchBook(key, true, book.path).then((result) => {
         if (!result) {
-          toast.error(this.props.t("Book not exsits"));
+          toast.error(this.props.t("Book not exsit"));
           return;
         }
         this.props.handleReadingBook(book);

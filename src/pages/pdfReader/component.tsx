@@ -3,7 +3,6 @@ import RecentBooks from "../../utils/readUtils/recordRecent";
 import { ViewerProps, ViewerState } from "./interface";
 import localforage from "localforage";
 import { withRouter } from "react-router-dom";
-import _ from "underscore";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import BackToMain from "../../components/backToMain";
 import PopupMenu from "../../components/popups/popupMenu";
@@ -38,7 +37,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         book = this.props.currentBook;
       } else {
         book =
-          result[_.findIndex(result, { key })] ||
+          result[window._.findIndex(result, { key })] ||
           JSON.parse(localStorage.getItem("tempBook") || "{}");
       }
 
@@ -61,13 +60,15 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         iframe.contentWindow || iframe.contentDocument?.defaultView;
       this.setState({ loading: false });
       pdfMouseEvent();
-      doc.document.addEventListener("click", (event: any) => {
+      doc.document.addEventListener("click", async (event: any) => {
         event.preventDefault();
-        handleLinkJump(event);
+        await handleLinkJump(event);
       });
 
       doc.document.addEventListener("mouseup", () => {
-        if (!doc!.getSelection()) return;
+        if (!doc!.getSelection() || doc!.getSelection().rangeCount === 0)
+          return;
+
         var rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
         this.setState({
           rect,
@@ -93,7 +94,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
               rect: this.state.rect,
               pageWidth: this.state.pageWidth,
               pageHeight: this.state.pageHeight,
-              chapterIndex: 0,
+              chapterDocIndex: 0,
               chapter: "0",
             }}
           />

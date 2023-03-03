@@ -83,7 +83,7 @@ class TextToSpeech extends React.Component<
     if (StorageUtil.getReaderConfig("isSliding") === "yes") {
       await sleep(1000);
     }
-    text = await this.props.htmlBook.rendition.visibleText();
+    text = this.props.htmlBook.rendition.visibleText();
     text = text
       .replace(/\s\s/g, "")
       .replace(/\r/g, "")
@@ -106,11 +106,11 @@ class TextToSpeech extends React.Component<
       console.log(err);
     };
 
-    msg.onend = (event) => {
+    msg.onend = async (event) => {
       if (!(this.state.isAudioOn && this.props.isReading)) {
         return;
       }
-      this.props.htmlBook.rendition.next();
+      await this.props.htmlBook.rendition.next();
       this.handleAudio();
     };
   };

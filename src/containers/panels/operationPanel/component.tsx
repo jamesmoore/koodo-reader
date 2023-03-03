@@ -91,7 +91,7 @@ class OperationPanel extends React.Component<
     }
     StorageUtil.setReaderConfig("isFullscreen", "no");
   }
-  handleAddBookmark = async () => {
+  handleAddBookmark = () => {
     let bookKey = this.props.currentBook.key;
     let bookLocation = RecordLocation.getHtmlLocation(bookKey);
     let text = bookLocation.text;
@@ -100,7 +100,7 @@ class OperationPanel extends React.Component<
 
     let cfi = JSON.stringify(bookLocation);
     if (!text) {
-      text = await this.props.htmlBook.rendition.visibleText();
+      text = this.props.htmlBook.rendition.visibleText();
     }
     text = text
       .replace(/\s\s/g, "")

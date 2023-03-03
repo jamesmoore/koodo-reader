@@ -21,6 +21,15 @@
         width: 100%;
       }
     </style>
+    <!-- <script>
+      var script = document.createElement("script");
+      if (document.location.href.indexOf("localhost:3000") > -1) {
+        script.src = "http://127.0.0.1:5500/dist/kookit.umd.js";
+      } else {
+        script.src = "/lib/kookit/kookit.min.js";
+      }
+      document.head.appendChild(script);
+    </script> -->
     <title>Koodo Reader</title>
   </head>
   <body>
@@ -30,11 +39,35 @@
     <canvas id="the-canvas"></canvas>
     <script
       type="text/javascript"
+      src="%PUBLIC_URL%/lib/kookit/kookit.min.js"
+    ></script>
+    <script
+      type="text/javascript"
       src="%PUBLIC_URL%/lib/JSZip/jszip.min.js"
     ></script>
     <script
       type="text/javascript"
-      src="%PUBLIC_URL%/lib/kookit/kookit.umd.js"
+      src="%PUBLIC_URL%/lib/chinese-s2t/chinese-s2t.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/fflate/fflate.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/js-untar/untar.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/underscore/underscore-umd-min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/7z-wasm/7zz.umd.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/zipjs/zip-no-worker.min.js"
     ></script>
     <script
       type="text/javascript"
@@ -42,7 +75,7 @@
     ></script>
     <script
       type="text/javascript"
-      src="%PUBLIC_URL%/lib/EpubJS/epub.min.js"
+      src="%PUBLIC_URL%/lib/libunrar/rpc.js"
     ></script>
     <script
       type="text/javascript"
@@ -75,10 +108,6 @@
     <script
       type="text/javascript"
       src="%PUBLIC_URL%/lib/Hammer/hammer.min.js"
-    ></script>
-    <script
-      type="text/javascript"
-      src="%PUBLIC_URL%/lib/unrar/unrar.js"
     ></script>
     <script type="text/javascript" src="%PUBLIC_URL%/lib/djvu/djvu.js"></script>
     <script

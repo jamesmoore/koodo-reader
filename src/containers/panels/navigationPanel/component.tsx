@@ -8,8 +8,9 @@ import SearchBox from "../../../components/searchBox";
 import Parser from "html-react-parser";
 import EmptyCover from "../../../components/emptyCover";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
-import { Tooltip } from "react-tippy";
 
+import CFI from "epub-cfi-resolver";
+import { getTooltip } from "../../../utils/commonUtil";
 class NavigationPanel extends React.Component<
   NavigationPanelProps,
   NavigationPanelState
@@ -70,15 +71,41 @@ class NavigationPanel extends React.Component<
             key={index}
             onClick={async () => {
               let bookLocation = JSON.parse(item.cfi) || {};
-              await this.props.htmlBook.rendition.goToPosition(
-                JSON.stringify({
-                  text: bookLocation.text,
-                  chapterTitle: bookLocation.chapterTitle,
-                  count: bookLocation.count,
-                  percentage: bookLocation.percentage,
-                  cfi: bookLocation.cfi,
-                })
-              );
+              //compatile with lower version(1.5.1)
+              if (bookLocation.cfi) {
+                await this.props.htmlBook.rendition.goToChapter(
+                  bookLocation.chapterDocIndex,
+                  bookLocation.chapterHref,
+                  bookLocation.chapterTitle
+                );
+                let cfiObj = new CFI(bookLocation.cfi);
+                let pageArea = document.getElementById("page-area");
+                if (!pageArea) return;
+                let iframe = pageArea.getElementsByTagName("iframe")[0];
+                if (!iframe) return;
+                let doc: any = iframe.contentDocument;
+                if (!doc) {
+                  return;
+                }
+                var bookmark = cfiObj.resolveLast(doc, {
+                  ignoreIDs: true,
+                });
+                await this.props.htmlBook.rendition.goToNode(
+                  bookmark.node.parentElement
+                );
+              } else {
+                await this.props.htmlBook.rendition.goToPosition(
+                  JSON.stringify({
+                    text: bookLocation.text,
+                    chapterTitle: bookLocation.chapterTitle,
+                    chapterDocIndex: bookLocation.chapterDocIndex,
+                    chapterHref: bookLocation.chapterHref,
+                    count: bookLocation.count,
+                    percentage: bookLocation.percentage,
+                    cfi: bookLocation.cfi,
+                  })
+                );
+              }
             }}
           >
             {Parser(item.excerpt)}
@@ -198,28 +225,33 @@ class NavigationPanel extends React.Component<
         ) : (
           <>
             <div className="navigation-header">
-              <Tooltip
-                title={this.props.t(this.state.isNavLocked ? "Unlock" : "Lock")}
-                position="bottom"
-                trigger="mouseenter"
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  right: 0,
-                  height: "30px",
-                }}
-              >
-                <span
-                  className={
-                    this.state.isNavLocked
-                      ? "icon-lock nav-lock-icon"
-                      : "icon-unlock nav-lock-icon"
-                  }
-                  onClick={() => {
-                    this.handleLock();
-                  }}
-                ></span>
-              </Tooltip>
+              {getTooltip(
+                (
+                  <span
+                    className={
+                      this.state.isNavLocked
+                        ? "icon-lock nav-lock-icon"
+                        : "icon-unlock nav-lock-icon"
+                    }
+                    onClick={() => {
+                      this.handleLock();
+                    }}
+                  ></span>
+                ) as any,
+                {
+                  title: this.props.t(
+                    this.state.isNavLocked ? "Unlock" : "Lock"
+                  ),
+                  position: "bottom",
+                  style: {
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    height: "30px",
+                  },
+                  trigger: "mouseenter",
+                }
+              )}
 
               {this.props.currentBook.cover &&
               this.props.currentBook.cover !== "noCover" ? (

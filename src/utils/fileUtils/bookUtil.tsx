@@ -4,14 +4,9 @@ import localforage from "localforage";
 import BookModel from "../../model/Book";
 import toast from "react-hot-toast";
 import { getPDFCover } from "./pdfUtil";
-import chardet from "chardet";
-import iconv from "iconv-lite";
-// import { xmlMetadata } from "./xmlUtil";
-// import { base64ArrayBuffer } from "./coverUtil";
+import { copyArrayBuffer } from "../commonUtil";
 declare var window: any;
-const { MobiRender, Azw3Render, EpubRender } = window.Kookit;
 
-// let Unrar = window.Unrar;
 class BookUtil {
   static addBook(key: string, buffer: ArrayBuffer) {
     if (isElectron) {
@@ -145,9 +140,9 @@ class BookUtil {
       return localforage.getItem(key);
     }
   }
-  static async RedirectBook(book: BookModel) {
+  static async RedirectBook(book: BookModel, t: (string) => string) {
     if (!(await this.isBookExist(book.key, book.path))) {
-      toast.error("Book not exist");
+      toast.error(t("Book not exist"));
       return;
     }
     let ref = book.format.toLowerCase();
@@ -164,6 +159,14 @@ class BookUtil {
         isPreventSleep: StorageUtil.getReaderConfig("isPreventSleep"),
       });
     } else {
+      if (ref === "rtf") {
+        toast(
+          t(
+            "Koodo Reader's web version are limited by the browser, for more powerful features, please download the desktop version."
+          )
+        );
+        return;
+      }
       window.open(
         `${window.location.href.split("#")[0]}#/${ref}/${book.key}?title=${
           book.name
@@ -212,6 +215,7 @@ class BookUtil {
     path: string,
     file_content: ArrayBuffer
   ) {
+    const { MobiRender, EpubRender, Fb2Render, ComicRender } = window.Kookit;
     return new Promise<BookModel | string>(async (resolve, reject) => {
       let cover: any = "";
       let key: string,
@@ -227,6 +231,8 @@ class BookUtil {
         "",
         "",
       ];
+      let metadata: any;
+      let rendition: any;
       switch (extension) {
         case "pdf":
           cover = await getPDFCover(file_content);
@@ -235,73 +241,65 @@ class BookUtil {
           }
           break;
         case "epub":
-          let epubRendition = new EpubRender(
-            file_content,
-            "scroll",
-            StorageUtil.getReaderConfig("isSliding") === "yes" ? true : false
-          );
-          let metadata = await epubRendition.getMetadata();
+          rendition = new EpubRender(file_content, "scroll");
+          metadata = await rendition.getMetadata();
           if (metadata === "timeout_error") {
             resolve("get_metadata_error");
             break;
-          } else if (!metadata.title) {
+          } else if (!metadata.name) {
             break;
           }
 
           [name, author, description, publisher, cover] = [
-            metadata.title,
-            metadata.creator,
-            metadata.description,
-            metadata.publisher,
-            metadata.cover,
+            metadata.name || bookName,
+            metadata.author || "Unknown Author",
+            metadata.description || "",
+            metadata.publisher || "",
+            metadata.cover || "",
           ];
           if (cover.indexOf("image") === -1) {
             cover = "";
           }
           break;
         case "mobi":
-          let mobiRendition = new MobiRender(
-            file_content,
-            "scroll",
-            StorageUtil.getReaderConfig("isSliding") === "yes" ? true : false
-          );
-          if (mobiRendition.getMetadata().compression === 17480) {
-            resolve("parse_kindle_error");
-          }
-          break;
+        case "azw":
         case "azw3":
-          let azw3Rendition = new Azw3Render(
-            file_content,
-            "scroll",
-            StorageUtil.getReaderConfig("isSliding") === "yes" ? true : false
-          );
-          if (azw3Rendition.getMetadata().compression === 17480) {
-            resolve("parse_kindle_error");
-          }
+          rendition = new MobiRender(file_content, "scroll");
+          metadata = await rendition.getMetadata();
+          [name, author, description, publisher, cover] = [
+            metadata.name || bookName,
+            metadata.author || "Unknown Author",
+            metadata.description || "",
+            metadata.publisher || "",
+            metadata.cover || "",
+          ];
           break;
         case "fb2":
-          charset = chardet.detect(Buffer.from(file_content)) || "";
-          let fb2Str = iconv.decode(
-            Buffer.from(file_content),
-            charset || "utf8"
-          );
-          // let fb2Obj: any = await xmlMetadata(fb2Str);
-          // cover = fb2Obj.cover;
-          // name = fb2Obj.name;
-          // author = fb2Obj.author;
+          rendition = new Fb2Render(file_content, "scroll");
+          metadata = await rendition.getMetadata();
+          [name, author, description, publisher, cover] = [
+            metadata.name || bookName,
+            metadata.author || "Unknown Author",
+            metadata.description || "",
+            metadata.publisher || "",
+            metadata.cover || "",
+          ];
           break;
-        // case "cbr":
-        //   let unrar = new Unrar(file_content);
-        //   let buffer = unrar.decompress(
-        //     unrar.getEntries().map((item: any) => item.name)[0]
-        //   );
-        //   cover = base64ArrayBuffer(buffer);
-        //   break;
-
+        case "cbr":
+        case "cbt":
+        case "cbz":
+        case "cb7":
+          rendition = new ComicRender(
+            copyArrayBuffer(file_content),
+            "scroll",
+            extension.toUpperCase()
+          );
+          metadata = await rendition.getMetadata();
+          cover = metadata.cover;
+          break;
         default:
           break;
       }
-
       let format = extension.toUpperCase();
       key = new Date().getTime() + "";
       resolve(

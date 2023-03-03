@@ -40,11 +40,18 @@ class BookListItem extends React.Component<BookItemProps, BookItemState> {
       if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
         this.props.history.push(BookUtil.getBookUrl(this.props.book));
       } else {
-        BookUtil.RedirectBook(this.props.book);
+        BookUtil.RedirectBook(this.props.book, this.props.t);
       }
     }
   }
-
+  UNSAFE_componentWillReceiveProps(nextProps: BookItemProps) {
+    if (nextProps.book.key !== this.props.book.key) {
+      this.setState({
+        isFavorite:
+          AddFavorite.getAllFavorite().indexOf(nextProps.book.key) > -1,
+      });
+    }
+  }
   handleDeleteBook = () => {
     this.props.handleDeleteDialog(true);
     this.props.handleReadingBook(this.props.book);
@@ -88,7 +95,7 @@ class BookListItem extends React.Component<BookItemProps, BookItemState> {
     if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
       this.props.history.push(BookUtil.getBookUrl(this.props.book));
     } else {
-      BookUtil.RedirectBook(this.props.book);
+      BookUtil.RedirectBook(this.props.book, this.props.t);
     }
   };
   handleExportBook() {

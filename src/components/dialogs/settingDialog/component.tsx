@@ -8,7 +8,7 @@ import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import { changePath } from "../../../utils/syncUtils/common";
 import { isElectron } from "react-device-detect";
 import { dropdownList } from "../../../constants/dropdownList";
-import { Tooltip } from "react-tippy";
+
 import { restore } from "../../../utils/syncUtils/restoreUtil";
 import {
   settingList,
@@ -17,9 +17,9 @@ import {
   skinList,
 } from "../../../constants/settingList";
 import { themeList } from "../../../constants/themeList";
-import _ from "underscore";
 import toast from "react-hot-toast";
 import { openExternalUrl } from "../../../utils/serviceUtils/urlUtil";
+import { getTooltip } from "../../../utils/commonUtil";
 class SettingDialog extends React.Component<
   SettingInfoProps,
   SettingInfoState
@@ -43,7 +43,7 @@ class SettingDialog extends React.Component<
       appSkin: StorageUtil.getReaderConfig("appSkin"),
       isUseBuiltIn: StorageUtil.getReaderConfig("isUseBuiltIn") === "yes",
       isPDFCover: StorageUtil.getReaderConfig("isPDFCover") === "yes",
-      currentThemeIndex: _.findLastIndex(themeList, {
+      currentThemeIndex: window._.findLastIndex(themeList, {
         name: StorageUtil.getReaderConfig("themeColor"),
       }),
     };
@@ -68,14 +68,14 @@ class SettingDialog extends React.Component<
           )
       ]?.setAttribute("selected", "selected");
     document.getElementsByClassName("lang-setting-dropdown")[2]?.children[
-      _.findLastIndex(searchList, {
+      window._.findLastIndex(searchList, {
         value:
           StorageUtil.getReaderConfig("searchEngine") ||
           (navigator.language === "zh-CN" ? "baidu" : "google"),
       })
     ]?.setAttribute("selected", "selected");
     document.getElementsByClassName("lang-setting-dropdown")[3]?.children[
-      _.findLastIndex(skinList, {
+      window._.findLastIndex(skinList, {
         value: StorageUtil.getReaderConfig("appSkin") || "system",
       })
     ]?.setAttribute("selected", "selected");
@@ -302,26 +302,28 @@ class SettingDialog extends React.Component<
           <div className="setting-dialog-new-title">
             <Trans>Theme Color</Trans>
             <ul className="theme-setting-container">
-              {themeList.map((item, index) => (
-                <Tooltip
-                  key={item.id}
-                  title={this.props.t(item.title)}
-                  position="top"
-                  trigger="mouseenter"
-                >
-                  <li
-                    className={
-                      index === this.state.currentThemeIndex
-                        ? "active-color theme-setting-item"
-                        : "theme-setting-item"
-                    }
-                    onClick={() => {
-                      this.handleTheme(item.name, index);
-                    }}
-                    style={{ backgroundColor: item.color }}
-                  ></li>
-                </Tooltip>
-              ))}
+              {themeList.map((item, index) =>
+                getTooltip(
+                  (
+                    <li
+                      className={
+                        index === this.state.currentThemeIndex
+                          ? "active-color theme-setting-item"
+                          : "theme-setting-item"
+                      }
+                      onClick={() => {
+                        this.handleTheme(item.name, index);
+                      }}
+                      style={{ backgroundColor: item.color }}
+                    ></li>
+                  ) as any,
+                  {
+                    title: item.title,
+                    position: "top",
+                    trigger: "mouseenter",
+                  }
+                )
+              )}
             </ul>
           </div>
 

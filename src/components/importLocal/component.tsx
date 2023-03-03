@@ -5,7 +5,7 @@ import localforage from "localforage";
 import { fetchMD5 } from "../../utils/fileUtils/md5Util";
 import { Trans } from "react-i18next";
 import Dropzone from "react-dropzone";
-import { Tooltip } from "react-tippy";
+
 import { ImportLocalProps, ImportLocalState } from "./interface";
 import RecordRecent from "../../utils/readUtils/recordRecent";
 import { isElectron } from "react-device-detect";
@@ -14,6 +14,7 @@ import BookUtil from "../../utils/fileUtils/bookUtil";
 import { fetchFileFromPath } from "../../utils/fileUtils/fileUtil";
 import toast from "react-hot-toast";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
+import { getTooltip } from "../../utils/commonUtil";
 declare var window: any;
 let clickFilePath = "";
 
@@ -85,7 +86,7 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
       this.props.handleReadingBook(book);
     } else {
       localStorage.setItem("tempBook", JSON.stringify(book));
-      BookUtil.RedirectBook(book);
+      BookUtil.RedirectBook(book, this.props.t);
       this.props.history.push("/manager/home");
     }
   };
@@ -168,6 +169,10 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
       if (
         [...(this.props.books || []), ...this.props.deletedBooks].length > 0
       ) {
+        console.log(
+          [...(this.props.books || []), ...this.props.deletedBooks],
+          md5
+        );
         [...(this.props.books || []), ...this.props.deletedBooks].forEach(
           (item) => {
             if (item.md5 === md5 && item.size === file.size) {
@@ -200,14 +205,7 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
               file_content
             );
             clickFilePath = "";
-            if (result === "parse_kindle_error") {
-              toast.error(
-                this.props.t(
-                  "You may see this error when the book you're importing is not supported by Koodo Reader, try converting it with Calibre"
-                )
-              );
-              return resolve();
-            } else if (result === "get_metadata_error") {
+            if (result === "get_metadata_error") {
               toast.error(this.props.t("Import Failed"));
               return resolve();
             }
@@ -239,11 +237,13 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
           ".txt",
           ".mobi",
           ".azw3",
+          ".azw",
           ".djvu",
           ".htm",
           ".html",
           ".xml",
           ".xhtml",
+          ".mhtml",
           ".docx",
           ".rtf",
           ".md",
@@ -251,6 +251,7 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
           ".cbz",
           ".cbt",
           ".cbr",
+          ".cb7",
         ]}
         multiple={true}
       >
@@ -266,17 +267,20 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
           >
             <div className="animation-mask-local"></div>
             {this.props.isCollapsed && this.state.width < 950 ? (
-              <Tooltip
-                title={this.props.t("Import")}
-                position="top"
-                style={{ height: "20px" }}
-                trigger="mouseenter"
-              >
-                <span
-                  className="icon-folder"
-                  style={{ fontSize: "15px", fontWeight: 500 }}
-                ></span>
-              </Tooltip>
+              getTooltip(
+                (
+                  <span
+                    className="icon-folder"
+                    style={{ fontSize: "15px", fontWeight: 500 }}
+                  ></span>
+                ) as any,
+                {
+                  title: this.props.t("Import"),
+                  position: "top",
+                  style: { height: "20px" },
+                  trigger: "mouseenter",
+                }
+              )
             ) : (
               <span>
                 <Trans>Import</Trans>
@@ -297,4 +301,4 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
   }
 }
 
-export default withRouter(ImportLocal);
+export default withRouter(ImportLocal as any);
