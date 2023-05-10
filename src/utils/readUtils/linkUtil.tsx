@@ -16,7 +16,7 @@ export const handleLinkJump = async (event: any, rendition: any = {}) => {
       event.target.src ||
       "";
   }
-  if (href.indexOf("#") > -1) {
+  if (href && href.indexOf("#") > -1) {
     let pageArea = document.getElementById("page-area");
     if (!pageArea) return;
     let iframe = pageArea.getElementsByTagName("iframe")[0];
@@ -25,8 +25,24 @@ export const handleLinkJump = async (event: any, rendition: any = {}) => {
     if (!doc) {
       return;
     }
+    if (href.indexOf("/#") === -1) {
+      let chapterInfo = rendition.resolveChapter(href);
+      rendition.goToChapter(
+        chapterInfo.index,
+        chapterInfo.href,
+        chapterInfo.title
+      );
+    }
+
     let id = href.split("#").reverse()[0];
     await rendition.goToNode(doc.body.querySelector("#" + id) || doc.body);
+  } else if (href && rendition.resolveChapter(href)) {
+    let chapterInfo = rendition.resolveChapter(href);
+    rendition.goToChapter(
+      chapterInfo.index,
+      chapterInfo.href,
+      chapterInfo.title
+    );
   } else if (
     href &&
     href.indexOf("../") === -1 &&

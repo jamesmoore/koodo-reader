@@ -16,15 +16,20 @@ export interface SettingInfoState {
   isPreventTrigger: boolean;
   isMergeWord: boolean;
   appSkin: string;
+  storageLocation: string;
   isImportPath: boolean;
   isOpenBook: boolean;
   isExpandContent: boolean;
+  isDisablePopup: boolean;
+  isDisableTrashBin: boolean;
+  isDeleteShelfBook: boolean;
   isPreventSleep: boolean;
   isOpenInMain: boolean;
   isDisableUpdate: boolean;
   isUseBuiltIn: boolean;
   isPDFCover: boolean;
   isAutoFullscreen: boolean;
+  isHideShelfBook: boolean;
   isPreventAdd: boolean;
   currentThemeIndex: number;
 }

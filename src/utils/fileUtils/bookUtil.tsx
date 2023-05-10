@@ -140,9 +140,17 @@ class BookUtil {
       return localforage.getItem(key);
     }
   }
-  static async RedirectBook(book: BookModel, t: (string) => string) {
+  static async RedirectBook(
+    book: BookModel,
+    t: (string) => string,
+    history: any
+  ) {
     if (!(await this.isBookExist(book.key, book.path))) {
       toast.error(t("Book not exist"));
+      return;
+    }
+    if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
+      history.push(BookUtil.getBookUrl(book) + `?title=${book.name}`);
       return;
     }
     let ref = book.format.toLowerCase();
@@ -150,7 +158,9 @@ class BookUtil {
     if (isElectron) {
       const { ipcRenderer } = window.require("electron");
       ipcRenderer.invoke("open-book", {
-        url: `${window.location.href.split("#")[0]}#/${ref}/${book.key}`,
+        url: `${window.location.href.split("#")[0]}#/${ref}/${book.key}?title=${
+          book.name
+        }`,
         isMergeWord:
           book.format === "PDF" || book.format === "DJVU"
             ? "no"
@@ -159,14 +169,6 @@ class BookUtil {
         isPreventSleep: StorageUtil.getReaderConfig("isPreventSleep"),
       });
     } else {
-      if (ref === "rtf") {
-        toast(
-          t(
-            "Koodo Reader's web version are limited by the browser, for more powerful features, please download the desktop version."
-          )
-        );
-        return;
-      }
       window.open(
         `${window.location.href.split("#")[0]}#/${ref}/${book.key}?title=${
           book.name

@@ -20,6 +20,7 @@ import localforage from "localforage";
 import { removeExtraQuestionMark } from "../../utils/commonUtil";
 import CFI from "epub-cfi-resolver";
 import mhtml2html from "mhtml2html";
+import rtfToHTML from "@iarna/rtf-to-html";
 
 declare var window: any;
 let lock = false; //prevent from clicking too fasts
@@ -39,6 +40,8 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         RecordLocation.getHtmlLocation(this.props.currentBook.key)
           .chapterTitle || "",
       readerMode: StorageUtil.getReaderConfig("readerMode") || "double",
+      isDisablePopup: StorageUtil.getReaderConfig("isDisablePopup") === "yes",
+
       margin: parseInt(StorageUtil.getReaderConfig("margin")) || 30,
       extraMargin: 0,
       chapterDocIndex: parseInt(
@@ -123,7 +126,6 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         toast.error(this.props.t("Book not exsit"));
         return;
       }
-
       if (format === "MOBI" || format === "AZW3" || format === "AZW") {
         this.handleMobi(result as ArrayBuffer);
       } else if (format === "EPUB") {
@@ -135,7 +137,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       } else if (format === "FB2") {
         this.handleFb2(result as ArrayBuffer);
       } else if (format === "RTF") {
-        this.handleRtf(key);
+        this.handleRtf(result as ArrayBuffer);
       } else if (format === "DOCX") {
         this.handleDocx(result as ArrayBuffer);
       } else if (
@@ -242,45 +244,37 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         chapterDocIndex: string;
         chapterHref: string;
       } = RecordLocation.getHtmlLocation(this.props.currentBook.key);
-      if (this.props.currentBook.format.startsWith("CB")) {
-        this.setState({
-          chapter:
-            this.props.htmlBook.flattenChapters[
-              parseInt(bookLocation.count) || 0
-            ].title,
-          chapterDocIndex: parseInt(bookLocation.count) || 0,
-        });
+
+      let chapter =
+        bookLocation.chapterTitle ||
+        (this.props.htmlBook
+          ? this.props.htmlBook.flattenChapters[0].title
+          : "Unknown Chapter");
+      let chapterDocIndex = 0;
+      if (bookLocation.chapterDocIndex) {
+        chapterDocIndex = parseInt(bookLocation.chapterDocIndex);
       } else {
-        let chapter =
-          bookLocation.chapterTitle ||
-          (this.props.htmlBook
-            ? this.props.htmlBook.flattenChapters[0].title
-            : "Unknown Chapter");
-        let chapterDocIndex = 0;
-        if (bookLocation.chapterDocIndex) {
-          chapterDocIndex = parseInt(bookLocation.chapterDocIndex);
-        } else {
-          chapterDocIndex =
-            bookLocation.chapterTitle && this.props.htmlBook
-              ? window._.findLastIndex(
-                  this.props.htmlBook.flattenChapters.map((item) => {
-                    item.title = item.title.trim();
-                    return item;
-                  }),
-                  {
-                    title: bookLocation.chapterTitle.trim(),
-                  }
-                )
-              : 0;
-        }
-        this.props.handleCurrentChapter(chapter);
-        this.props.handleCurrentChapterIndex(chapterDocIndex);
-        this.props.handleFetchPercentage(this.props.currentBook);
-        this.setState({
-          chapter,
-          chapterDocIndex,
-        });
+        chapterDocIndex =
+          bookLocation.chapterTitle && this.props.htmlBook
+            ? window._.findLastIndex(
+                this.props.htmlBook.flattenChapters.map((item) => {
+                  item.title = item.title.trim();
+                  return item;
+                }),
+                {
+                  title: bookLocation.chapterTitle.trim(),
+                }
+              )
+            : 0;
       }
+      this.props.handleCurrentChapter(chapter);
+      this.props.handleCurrentChapterIndex(chapterDocIndex);
+      this.props.handleFetchPercentage(this.props.currentBook);
+      this.setState({
+        chapter,
+        chapterDocIndex,
+      });
+      this.handleContentScroll(chapter, bookLocation.chapterHref);
       StyleUtil.addDefaultCss();
       tsTransform();
       this.handleBindGesture();
@@ -290,6 +284,22 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       }, 1000);
       return false;
     });
+  };
+  handleContentScroll = (chapter: string, chapterHref: string) => {
+    let chapterIndex = window._.findIndex(this.props.htmlBook.flattenChapters, {
+      href: chapterHref,
+    });
+    let contentBody = document.getElementsByClassName("navigation-body")[0];
+    if (!contentBody) return;
+    let contentList = contentBody.getElementsByTagName("a");
+    let targetContent = Array.from(contentList).filter((item, index) => {
+      item.setAttribute("style", "");
+      return item.textContent === chapter && index === chapterIndex;
+    });
+    if (targetContent.length > 0) {
+      contentBody.scrollTo(0, targetContent[0].offsetTop);
+      targetContent[0].setAttribute("style", "color:red; font-weight: bold");
+    }
   };
   handleLocation = () => {
     let position = this.props.htmlBook.rendition.getPosition();
@@ -314,6 +324,14 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       this.props.handleLeaveReader("bottom");
     });
     doc.addEventListener("mouseup", () => {
+      if (this.state.isDisablePopup) return;
+      if (!doc!.getSelection() || doc!.getSelection()!.rangeCount === 0) return;
+      var rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
+      this.setState({ rect });
+    });
+    doc.addEventListener("contextmenu", (event) => {
+      if (!this.state.isDisablePopup) return;
+      event.preventDefault();
       if (!doc!.getSelection() || doc!.getSelection()!.rangeCount === 0) return;
       var rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
       this.setState({ rect });
@@ -409,31 +427,22 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
     };
     reader.readAsText(blob, "UTF-8");
   };
-  handleRtf = async (key: string) => {
-    const rtfToHTML = window.require("@iarna/rtf-to-html");
-    const fs = window.require("fs");
-    const path = window.require("path");
-    let bookPath = path.join(
-      localStorage.getItem("storageLocation")
-        ? localStorage.getItem("storageLocation")
-        : window
-            .require("electron")
-            .ipcRenderer.sendSync("storage-location", "ping"),
-      `book`,
-      key
-    );
-    fs.createReadStream(bookPath).pipe(
-      rtfToHTML(async (err, html) => {
-        let rendition = new window.Kookit.StrRender(
-          removeExtraQuestionMark(html),
-          this.state.readerMode
-        );
-        await rendition.renderTo(
-          document.getElementsByClassName("html-viewer-page")[0]
-        );
-        await this.handleRest(rendition);
-      })
-    );
+  handleRtf = async (result: ArrayBuffer) => {
+    const array = new Uint8Array(result as ArrayBuffer);
+    let bufferStr = "";
+    for (let i = 0; i < array.length; ++i) {
+      bufferStr += String.fromCharCode(array[i]);
+    }
+    rtfToHTML.fromString(bufferStr, async (err: any, html: any) => {
+      let rendition = new window.Kookit.StrRender(
+        removeExtraQuestionMark(html),
+        this.state.readerMode
+      );
+      await rendition.renderTo(
+        document.getElementsByClassName("html-viewer-page")[0]
+      );
+      await this.handleRest(rendition);
+    });
   };
   handleDocx = (result: ArrayBuffer) => {
     window.mammoth
@@ -486,10 +495,10 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
               ? { left: 0, right: 0 }
               : this.state.readerMode === "scroll"
               ? {
-                  left: `calc(50vw - ${
+                  paddingLeft: `calc(50vw - ${
                     270 * parseFloat(this.state.scale)
                   }px + 20px)`,
-                  right: `calc(50vw - ${
+                  paddingRight: `calc(50vw - ${
                     270 * parseFloat(this.state.scale)
                   }px + 15px)`,
                   overflowY: "scroll",

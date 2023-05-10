@@ -10,6 +10,8 @@ import RecordLocation from "../../utils/readUtils/recordLocation";
 import { isElectron } from "react-device-detect";
 import EmptyCover from "../emptyCover";
 import Parser from "html-react-parser";
+import * as DOMPurify from "dompurify";
+
 import { Trans } from "react-i18next";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import toast from "react-hot-toast";
@@ -43,11 +45,7 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
       !filePath
     ) {
       this.props.handleReadingBook(this.props.book);
-      if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
-        this.props.history.push(BookUtil.getBookUrl(this.props.book));
-      } else {
-        BookUtil.RedirectBook(this.props.book, this.props.t);
-      }
+      BookUtil.RedirectBook(this.props.book, this.props.t, this.props.history);
     }
   }
   UNSAFE_componentWillReceiveProps(nextProps: BookCoverProps) {
@@ -111,11 +109,7 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
     }
     RecentBooks.setRecent(this.props.book.key);
     this.props.handleReadingBook(this.props.book);
-    if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
-      this.props.history.push(BookUtil.getBookUrl(this.props.book));
-    } else {
-      BookUtil.RedirectBook(this.props.book, this.props.t);
-    }
+    BookUtil.RedirectBook(this.props.book, this.props.t, this.props.history);
   };
   render() {
     let percentage = RecordLocation.getHtmlLocation(this.props.book.key)
@@ -197,7 +191,7 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
           <div className="book-cover-item-desc">
             <Trans>Description</Trans>:&nbsp;
             {this.props.book.description ? (
-              Parser(this.props.book.description)
+              Parser(DOMPurify.sanitize(this.props.book.description))
             ) : (
               <Trans>Empty</Trans>
             )}

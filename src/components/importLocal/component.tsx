@@ -14,7 +14,8 @@ import BookUtil from "../../utils/fileUtils/bookUtil";
 import { fetchFileFromPath } from "../../utils/fileUtils/fileUtil";
 import toast from "react-hot-toast";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
-import { getTooltip } from "../../utils/commonUtil";
+
+import ShelfUtil from "../../utils/readUtils/shelfUtil";
 declare var window: any;
 let clickFilePath = "";
 
@@ -82,11 +83,11 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
   };
   handleJump = (book: BookModel) => {
     if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
-      this.props.history.push(BookUtil.getBookUrl(book));
+      BookUtil.RedirectBook(book, this.props.t, this.props.history);
       this.props.handleReadingBook(book);
     } else {
       localStorage.setItem("tempBook", JSON.stringify(book));
-      BookUtil.RedirectBook(book, this.props.t);
+      BookUtil.RedirectBook(book, this.props.t, this.props.history);
       this.props.history.push("/manager/home");
     }
   };
@@ -119,7 +120,10 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
         .setItem("books", bookArr)
         .then(() => {
           this.props.handleFetchBooks();
-
+          if (this.props.mode === "shelf") {
+            let shelfTitles = Object.keys(ShelfUtil.getShelf());
+            ShelfUtil.setShelf(shelfTitles[this.props.shelfIndex], book.key);
+          }
           toast.success(this.props.t("Add Successfully"));
           setTimeout(() => {
             this.state.isOpenFile && this.handleJump(book);
@@ -169,10 +173,6 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
       if (
         [...(this.props.books || []), ...this.props.deletedBooks].length > 0
       ) {
-        console.log(
-          [...(this.props.books || []), ...this.props.deletedBooks],
-          md5
-        );
         [...(this.props.books || []), ...this.props.deletedBooks].forEach(
           (item) => {
             if (item.md5 === md5 && item.size === file.size) {
@@ -267,20 +267,10 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
           >
             <div className="animation-mask-local"></div>
             {this.props.isCollapsed && this.state.width < 950 ? (
-              getTooltip(
-                (
-                  <span
-                    className="icon-folder"
-                    style={{ fontSize: "15px", fontWeight: 500 }}
-                  ></span>
-                ) as any,
-                {
-                  title: this.props.t("Import"),
-                  position: "top",
-                  style: { height: "20px" },
-                  trigger: "mouseenter",
-                }
-              )
+              <span
+                className="icon-folder"
+                style={{ fontSize: "15px", fontWeight: 500 }}
+              ></span>
             ) : (
               <span>
                 <Trans>Import</Trans>

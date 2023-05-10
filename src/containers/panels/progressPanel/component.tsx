@@ -4,7 +4,6 @@ import { Trans } from "react-i18next";
 import { ProgressPanelProps, ProgressPanelState } from "./interface";
 
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
-import { getTooltip } from "../../../utils/commonUtil";
 
 class ProgressPanel extends React.Component<
   ProgressPanelProps,
@@ -15,7 +14,7 @@ class ProgressPanel extends React.Component<
     this.state = {
       currentPage: 0,
       totalPage: 0,
-      targetChapter: 0,
+      targetChapterIndex: 0,
       targetPage: 0,
       isSingle:
         StorageUtil.getReaderConfig("readerMode") &&
@@ -27,9 +26,23 @@ class ProgressPanel extends React.Component<
       await this.handlePageNum(nextProps.htmlBook.rendition);
       nextProps.htmlBook.rendition.on("page-changed", async () => {
         await this.handlePageNum(nextProps.htmlBook.rendition);
+        this.handleCurrentChapterIndex(nextProps.htmlBook.rendition);
       });
+      nextProps.htmlBook.rendition.on("rendered", async () => {
+        await this.handlePageNum(nextProps.htmlBook.rendition);
+        this.handleCurrentChapterIndex(nextProps.htmlBook.rendition);
+      });
+      this.handleCurrentChapterIndex(nextProps.htmlBook.rendition);
     }
   }
+  handleCurrentChapterIndex = (rendition) => {
+    let position = rendition.getPosition();
+    let href = position.chapterHref;
+    let chapterIndex = window._.findIndex(this.props.htmlBook.flattenChapters, {
+      href,
+    });
+    this.setState({ targetChapterIndex: chapterIndex + 1 });
+  };
   async handlePageNum(rendition) {
     let pageInfo = await rendition.getProgress();
     this.setState({
@@ -51,7 +64,7 @@ class ProgressPanel extends React.Component<
       await this.props.htmlBook.rendition.goToChapter(
         this.props.htmlBook.flattenChapters[chapterIndex].index.toString(),
         this.props.htmlBook.flattenChapters[chapterIndex].href,
-        ""
+        this.props.htmlBook.flattenChapters[chapterIndex].title
       );
     }
   };
@@ -66,11 +79,11 @@ class ProgressPanel extends React.Component<
     }
   };
   handleJumpChapter = async (event: any) => {
-    let targetChapter = parseInt(event.target.value.trim()) - 1;
+    let targetChapterIndex = parseInt(event.target.value.trim()) - 1;
     if (this.props.htmlBook.flattenChapters.length > 0) {
       await this.props.htmlBook.rendition.goToChapter(
-        this.props.htmlBook.flattenChapters[targetChapter].index,
-        this.props.htmlBook.flattenChapters[targetChapter].href,
+        this.props.htmlBook.flattenChapters[targetChapterIndex].index,
+        this.props.htmlBook.flattenChapters[targetChapterIndex].href,
         ""
       );
     }
@@ -125,26 +138,20 @@ class ProgressPanel extends React.Component<
             type="text"
             name="jumpChapter"
             id="jumpChapter"
-            value={
-              this.state.targetChapter
-                ? this.state.targetChapter
-                : this.props.currentChapterIndex === -1
-                ? this.props.htmlBook.flattenChapters.length
-                : this.props.currentChapterIndex + 1
-            }
+            value={this.state.targetChapterIndex}
             onFocus={() => {
-              this.setState({ targetChapter: " " });
+              this.setState({ targetChapterIndex: " " });
             }}
             onChange={(event) => {
               let fieldVal = event.target.value;
-              this.setState({ targetChapter: fieldVal });
+              this.setState({ targetChapterIndex: fieldVal });
             }}
             onBlur={(event) => {
               if (event.target.value.trim()) {
                 this.handleJumpChapter(event);
-                this.setState({ targetChapter: "" });
+                this.setState({ targetChapterIndex: "" });
               } else {
-                this.setState({ targetChapter: "" });
+                this.setState({ targetChapterIndex: "" });
               }
             }}
           />
@@ -174,16 +181,7 @@ class ProgressPanel extends React.Component<
             this.prevChapter();
           }}
         >
-          {getTooltip(
-            (
-              <span className="icon-dropdown previous-chapter-icon"> </span>
-            ) as any,
-            {
-              title: this.props.t("Prev Chapter"),
-              position: "top",
-              trigger: "mouseenter",
-            }
-          )}
+          <span className="icon-dropdown previous-chapter-icon"> </span>
         </div>
 
         <div
@@ -192,14 +190,7 @@ class ProgressPanel extends React.Component<
             this.nextChapter();
           }}
         >
-          {getTooltip(
-            (<span className="icon-dropdown next-chapter-icon"></span>) as any,
-            {
-              title: this.props.t("Next Chapter"),
-              position: "top",
-              trigger: "mouseenter",
-            }
-          )}
+          <span className="icon-dropdown next-chapter-icon"></span>
         </div>
       </div>
     );

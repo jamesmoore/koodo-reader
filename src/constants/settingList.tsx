@@ -42,6 +42,30 @@ export const settingList = [
     propName: "isExpandContent",
   },
   {
+    isElectron: false,
+    title: "No popup when selecting texts",
+    desc: "Turn it on when you want Koodo to work with other third-party translation service, right clicking on the selected text will trigger popup again",
+    propName: "isDisablePopup",
+  },
+  {
+    isElectron: false,
+    title: "Disable trash bin",
+    desc: "When deleting books, they will be deleted permanetly instead of sending to trash bin",
+    propName: "isDisableTrashBin",
+  },
+  {
+    isElectron: false,
+    title: "Hide books already added to the shelf",
+    desc: "Hide books which have been added to the shelf, so they won't show up in home page",
+    propName: "isHideShelfBook",
+  },
+  {
+    isElectron: false,
+    title: "Delete book from shelf also deleting book itself",
+    desc: "When deleting book from shelf, the book will be deleted as well",
+    propName: "isDeleteShelfBook",
+  },
+  {
     isElectron: true,
     title: "Disable screen blanking",
     desc: "When Koodo is running, your computer won't enter sleep mode",
@@ -92,6 +116,10 @@ export const langList = [
   { label: "한국어", value: "ko" },
   { label: "Polski", value: "pl" },
   { label: "Română", value: "ro" },
+  { label: "แบบไทย", value: "th" },
+  { label: "italiano", value: "it" },
+  { label: "Nederlands", value: "nl" },
+  { label: "বাংলা", value: "bn" },
 ];
 
 export const searchList = [

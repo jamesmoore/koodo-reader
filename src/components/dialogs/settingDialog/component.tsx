@@ -19,7 +19,6 @@ import {
 import { themeList } from "../../../constants/themeList";
 import toast from "react-hot-toast";
 import { openExternalUrl } from "../../../utils/serviceUtils/urlUtil";
-import { getTooltip } from "../../../utils/commonUtil";
 class SettingDialog extends React.Component<
   SettingInfoProps,
   SettingInfoState
@@ -37,6 +36,12 @@ class SettingDialog extends React.Component<
       isPreventAdd: StorageUtil.getReaderConfig("isPreventAdd") === "yes",
       isOpenBook: StorageUtil.getReaderConfig("isOpenBook") === "yes",
       isExpandContent: StorageUtil.getReaderConfig("isExpandContent") === "yes",
+      isDisablePopup: StorageUtil.getReaderConfig("isDisablePopup") === "yes",
+      isDisableTrashBin:
+        StorageUtil.getReaderConfig("isDisableTrashBin") === "yes",
+      isDeleteShelfBook:
+        StorageUtil.getReaderConfig("isDeleteShelfBook") === "yes",
+      isHideShelfBook: StorageUtil.getReaderConfig("isHideShelfBook") === "yes",
       isPreventSleep: StorageUtil.getReaderConfig("isPreventSleep") === "yes",
       isOpenInMain: StorageUtil.getReaderConfig("isOpenInMain") === "yes",
       isDisableUpdate: StorageUtil.getReaderConfig("isDisableUpdate") === "yes",
@@ -46,6 +51,13 @@ class SettingDialog extends React.Component<
       currentThemeIndex: window._.findLastIndex(themeList, {
         name: StorageUtil.getReaderConfig("themeColor"),
       }),
+      storageLocation: isElectron
+        ? localStorage.getItem("storageLocation")
+          ? localStorage.getItem("storageLocation")
+          : window
+              .require("electron")
+              .ipcRenderer.sendSync("storage-location", "ping")
+        : "",
     };
   }
   componentDidMount() {
@@ -180,6 +192,7 @@ class SettingDialog extends React.Component<
       toast.error(this.props.t("Change Failed"));
     }
     localStorage.setItem("storageLocation", path.filePaths[0]);
+    this.setState({ storageLocation: path.filePaths[0] });
     document.getElementsByClassName(
       "setting-dialog-location-title"
     )[0].innerHTML =
@@ -302,28 +315,19 @@ class SettingDialog extends React.Component<
           <div className="setting-dialog-new-title">
             <Trans>Theme Color</Trans>
             <ul className="theme-setting-container">
-              {themeList.map((item, index) =>
-                getTooltip(
-                  (
-                    <li
-                      className={
-                        index === this.state.currentThemeIndex
-                          ? "active-color theme-setting-item"
-                          : "theme-setting-item"
-                      }
-                      onClick={() => {
-                        this.handleTheme(item.name, index);
-                      }}
-                      style={{ backgroundColor: item.color }}
-                    ></li>
-                  ) as any,
-                  {
-                    title: item.title,
-                    position: "top",
-                    trigger: "mouseenter",
+              {themeList.map((item, index) => (
+                <li
+                  className={
+                    index === this.state.currentThemeIndex
+                      ? "active-color theme-setting-item"
+                      : "theme-setting-item"
                   }
-                )
-              )}
+                  onClick={() => {
+                    this.handleTheme(item.name, index);
+                  }}
+                  style={{ backgroundColor: item.color }}
+                ></li>
+              ))}
             </ul>
           </div>
 
@@ -342,11 +346,7 @@ class SettingDialog extends React.Component<
                 </span>
               </div>
               <div className="setting-dialog-location-title">
-                {localStorage.getItem("storageLocation")
-                  ? localStorage.getItem("storageLocation")
-                  : window
-                      .require("electron")
-                      .ipcRenderer.sendSync("storage-location", "ping")}
+                {this.state.storageLocation}
               </div>
             </>
           )}
