@@ -2,11 +2,12 @@ import React from "react";
 import ShelfUtil from "../../utils/readUtils/shelfUtil";
 import { Trans } from "react-i18next";
 import { ShelfSelectorProps, ShelfSelectorState } from "./interface";
-import localforage from "localforage";
+
 import DeletePopup from "../dialogs/deletePopup";
 import { withRouter } from "react-router-dom";
 import { backup } from "../../utils/syncUtils/backupUtil";
 import { isElectron } from "react-device-detect";
+declare var window: any;
 class ShelfSelector extends React.Component<
   ShelfSelectorProps,
   ShelfSelectorState
@@ -64,7 +65,7 @@ class ShelfSelector extends React.Component<
   render() {
     if (isElectron) {
       //兼容之前的版本
-      localforage.getItem(this.props.books[0].key).then((result) => {
+      window.localforage.getItem(this.props.books[0].key).then((result) => {
         if (result) {
           backup(
             this.props.books,
@@ -87,11 +88,11 @@ class ShelfSelector extends React.Component<
     return (
       <>
         {this.state.isOpenDelete && <DeletePopup {...deletePopupProps} />}
-        <div
-          className="booklist-shelf-container"
-          style={this.props.isCollapsed ? {} : { left: "calc(50% - 60px)" }}
-        >
-          <p className="general-setting-title" style={{ display: "inline" }}>
+        <div className="booklist-shelf-container">
+          <p
+            className="general-setting-title"
+            style={{ float: "left", height: "100%" }}
+          >
             <Trans>Shelf</Trans>
           </p>
           <select

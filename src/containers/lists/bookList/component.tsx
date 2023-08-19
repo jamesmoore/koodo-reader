@@ -9,7 +9,7 @@ import SortUtil from "../../../utils/readUtils/sortUtil";
 import BookModel from "../../../model/Book";
 import { BookListProps, BookListState } from "./interface";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
-import localforage from "localforage";
+
 import Empty from "../../emptyPage";
 import { Redirect, withRouter } from "react-router-dom";
 import ViewMode from "../../../components/viewMode";
@@ -17,6 +17,7 @@ import { backup } from "../../../utils/syncUtils/backupUtil";
 import { isElectron } from "react-device-detect";
 import SelectBook from "../../../components/selectBook";
 import ShelfSelector from "../../../components/shelfSelector";
+declare var window: any;
 class BookList extends React.Component<BookListProps, BookListState> {
   constructor(props: BookListProps) {
     super(props);
@@ -108,7 +109,7 @@ class BookList extends React.Component<BookListProps, BookListState> {
           //返回排序后的图书index
           SortUtil.sortBooks(this.props.books, this.props.bookSortCode) || []
         );
-    if (this.props.mode === "shelf" && books.length === 0) {
+    if (books.length === 0) {
       return (
         <div
           style={{
@@ -163,7 +164,7 @@ class BookList extends React.Component<BookListProps, BookListState> {
     }
     if (isElectron) {
       //兼容之前的版本
-      localforage.getItem(this.props.books[0].key).then((result) => {
+      window.localforage.getItem(this.props.books[0].key).then((result) => {
         if (result) {
           backup(
             this.props.books,
@@ -181,9 +182,21 @@ class BookList extends React.Component<BookListProps, BookListState> {
     );
     return (
       <>
-        <ViewMode />
-        <SelectBook />
-        {!this.props.isSelectBook && <ShelfSelector />}
+        <div
+          className="book-list-header"
+          style={
+            this.props.isCollapsed
+              ? { width: "calc(100% - 70px)", left: "70px" }
+              : {}
+          }
+        >
+          <SelectBook />
+          <div style={this.props.isSelectBook ? { display: "none" } : {}}>
+            <ShelfSelector />
+          </div>
+          <ViewMode />
+        </div>
+
         <div
           className="book-list-container-parent"
           style={

@@ -45,9 +45,11 @@ class SettingDialog extends React.Component<
       isPreventSleep: StorageUtil.getReaderConfig("isPreventSleep") === "yes",
       isOpenInMain: StorageUtil.getReaderConfig("isOpenInMain") === "yes",
       isDisableUpdate: StorageUtil.getReaderConfig("isDisableUpdate") === "yes",
+      isPrecacheBook: StorageUtil.getReaderConfig("isPrecacheBook") === "yes",
       appSkin: StorageUtil.getReaderConfig("appSkin"),
       isUseBuiltIn: StorageUtil.getReaderConfig("isUseBuiltIn") === "yes",
       isPDFCover: StorageUtil.getReaderConfig("isPDFCover") === "yes",
+      isHideFloating: StorageUtil.getReaderConfig("isHideFloating") === "yes",
       currentThemeIndex: window._.findLastIndex(themeList, {
         name: StorageUtil.getReaderConfig("themeColor"),
       }),
@@ -74,10 +76,7 @@ class SettingDialog extends React.Component<
       ?.children[
         langList
           .map((item) => item.value)
-          .indexOf(
-            StorageUtil.getReaderConfig("lang") ||
-              (navigator.language.indexOf("zh") > -1 ? "zh" : "en")
-          )
+          .indexOf(StorageUtil.getReaderConfig("lang") || "en")
       ]?.setAttribute("selected", "selected");
     document.getElementsByClassName("lang-setting-dropdown")[2]?.children[
       window._.findLastIndex(searchList, {
@@ -122,7 +121,7 @@ class SettingDialog extends React.Component<
     }
 
     if (isElectron) {
-      toast(this.props.t("Try refresh or restart"));
+      window.require("electron").ipcRenderer.invoke("reload-main", "ping");
     } else {
       window.location.reload();
     }
@@ -205,7 +204,7 @@ class SettingDialog extends React.Component<
     this.setState({ currentThemeIndex: index });
     StorageUtil.setReaderConfig("themeColor", name);
     if (isElectron) {
-      toast(this.props.t("Try refresh or restart"));
+      window.require("electron").ipcRenderer.invoke("reload-main", "ping");
     } else {
       window.location.reload();
     }

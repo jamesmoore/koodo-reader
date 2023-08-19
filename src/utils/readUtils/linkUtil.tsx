@@ -2,7 +2,6 @@ import { openExternalUrl } from "../serviceUtils/urlUtil";
 
 export const handleLinkJump = async (event: any, rendition: any = {}) => {
   let href;
-
   if (
     event.target &&
     event.target.parentNode &&
@@ -10,10 +9,10 @@ export const handleLinkJump = async (event: any, rendition: any = {}) => {
   ) {
     href =
       (event.target.innerText.indexOf("http") > -1 && event.target.innerText) ||
-      event.target.href ||
-      event.target.parentNode.href ||
-      event.target.parentNode.parentNode.href ||
-      event.target.src ||
+      event.target.getAttribute("href") ||
+      event.target.parentNode.getAttribute("href") ||
+      event.target.parentNode.parentNode.getAttribute("href") ||
+      event.target.getAttribute("src") ||
       "";
   }
   if (href && href.indexOf("#") > -1) {
@@ -25,12 +24,12 @@ export const handleLinkJump = async (event: any, rendition: any = {}) => {
     if (!doc) {
       return;
     }
-    if (href.indexOf("/#") === -1) {
-      let chapterInfo = rendition.resolveChapter(href);
-      rendition.goToChapter(
+    if (href.indexOf("#") !== 0) {
+      let chapterInfo = rendition.resolveChapter(href.split("#")[0]);
+      await rendition.goToChapter(
         chapterInfo.index,
         chapterInfo.href,
-        chapterInfo.title
+        chapterInfo.label
       );
     }
 
@@ -38,10 +37,10 @@ export const handleLinkJump = async (event: any, rendition: any = {}) => {
     await rendition.goToNode(doc.body.querySelector("#" + id) || doc.body);
   } else if (href && rendition.resolveChapter(href)) {
     let chapterInfo = rendition.resolveChapter(href);
-    rendition.goToChapter(
+    await rendition.goToChapter(
       chapterInfo.index,
       chapterInfo.href,
-      chapterInfo.title
+      chapterInfo.label
     );
   } else if (
     href &&

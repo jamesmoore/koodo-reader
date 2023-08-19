@@ -37,7 +37,14 @@ const BackToMain = (props: any) => {
           props.handleReadingState(false);
         }
       }}
-      style={document.URL.indexOf("djvu") > -1 ? { bottom: "60px" } : {}}
+      style={
+        StorageUtil.getReaderConfig("isHideFloating") === "yes" &&
+        document.URL.indexOf("pdf") > -1
+          ? { display: "none" }
+          : document.URL.indexOf("djvu") > -1
+          ? { bottom: "60px" }
+          : {}
+      }
     >
       <span className="icon-home back-home"></span>
     </div>

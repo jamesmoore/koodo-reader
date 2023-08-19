@@ -11,9 +11,9 @@ import TokenDialog from "../tokenDialog";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import Lottie from "react-lottie";
 import animationSuccess from "../../../assets/lotties/success.json";
-import FileSaver from "file-saver";
+
 import toast from "react-hot-toast";
-import { isElectron } from "react-device-detect";
+import { isElectron } from "react-device-detect";declare var window: any;
 const successOptions = {
   loop: false,
   autoplay: true,
@@ -71,7 +71,7 @@ class BackupDialog extends React.Component<
           if (!blob) {
             this.showMessage("Backup Failed");
           }
-          FileSaver.saveAs(
+          window.saveAs(
             blob as Blob,
             `${year}-${month <= 9 ? "0" + month : month}-${
               day <= 9 ? "0" + day : day
@@ -263,7 +263,7 @@ class BackupDialog extends React.Component<
               }}
             >
               <span className="icon-backup"></span>
-              <div style={{ lineHeight: 1.25 }}>
+              <div style={{ lineHeight: 1.0 }}>
                 <Trans>Backup</Trans>
               </div>
             </div>

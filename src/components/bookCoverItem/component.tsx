@@ -90,6 +90,12 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
   handleCancelLoveBook = () => {
     AddFavorite.clear(this.props.book.key);
     this.setState({ isFavorite: false });
+    if (
+      Object.keys(AddFavorite.getAllFavorite()).length === 0 &&
+      this.props.mode === "favorite"
+    ) {
+      this.props.history.push("/manager/empty");
+    }
     toast.success(this.props.t("Cancel Successfully"));
   };
   //控制按钮的弹出
@@ -125,7 +131,7 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
           }}
           onMouseLeave={() => {
             this.handleConfig(false);
-            this.props.handleActionDialog(false);
+            // this.props.handleActionDialog(false);
           }}
           onContextMenu={(event) => {
             this.handleMoreAction(event);

@@ -2,7 +2,7 @@ import React from "react";
 import "./operationPanel.css";
 import Bookmark from "../../../model/Bookmark";
 import { Trans } from "react-i18next";
-import localforage from "localforage";
+
 import RecordLocation from "../../../utils/readUtils/recordLocation";
 import { OperationPanelProps, OperationPanelState } from "./interface";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
@@ -13,7 +13,7 @@ import { HtmlMouseEvent } from "../../../utils/serviceUtils/mouseEvent";
 import storageUtil from "../../../utils/serviceUtils/storageUtil";
 import EdgeUtil from "../../../utils/serviceUtils/edgeUtil";
 declare var document: any;
-
+declare var window: any;
 class OperationPanel extends React.Component<
   OperationPanelProps,
   OperationPanelState
@@ -57,6 +57,7 @@ class OperationPanel extends React.Component<
       );
     });
   }
+
   handleShortcut() {}
   // 点击切换全屏按钮触发
   handleScreen() {
@@ -76,12 +77,14 @@ class OperationPanel extends React.Component<
     if (this.props.htmlBook) {
       this.props.handleHtmlBook(null);
     }
-    if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
-      this.props.history.push("/manager/home");
-      document.title = "Koodo Reader";
-    } else {
-      window.close();
-    }
+    setTimeout(() => {
+      if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
+        this.props.history.push("/manager/home");
+        document.title = "Koodo Reader";
+      } else {
+        window.close();
+      }
+    }, 50);
   }
   //控制进入全屏
   handleFullScreen() {
@@ -129,7 +132,7 @@ class OperationPanel extends React.Component<
     let bookmarkArr = this.props.bookmarks;
     bookmarkArr.push(bookmark);
     this.props.handleBookmarks(bookmarkArr);
-    localforage.setItem("bookmarks", bookmarkArr);
+    window.localforage.setItem("bookmarks", bookmarkArr);
     this.setState({ isBookmark: true });
     toast.success(this.props.t("Add Successfully"));
     this.props.handleShowBookmark(true);
@@ -187,10 +190,14 @@ class OperationPanel extends React.Component<
             this.handleExit();
           }}
         >
-          <span className="icon-exit exit-reading-icon"></span>
-          <span className="exit-reading-text">
-            <Trans>Exit</Trans>
-          </span>
+          <div className="operation-button-container">
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span className="icon-exit exit-reading-icon"></span>
+              <span className="exit-reading-text">
+                <Trans>Exit</Trans>
+              </span>
+            </div>
+          </div>
         </div>
         <div
           className="add-bookmark-button"
@@ -198,10 +205,14 @@ class OperationPanel extends React.Component<
             this.handleAddBookmark();
           }}
         >
-          <span className="icon-add add-bookmark-icon"></span>
-          <span className="add-bookmark-text">
-            <Trans>Add Bookmark</Trans>
-          </span>
+          <div className="operation-button-container">
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span className="icon-add add-bookmark-icon"></span>
+              <span className="add-bookmark-text">
+                <Trans>Add Bookmark</Trans>
+              </span>
+            </div>
+          </div>
         </div>
         <div
           className="enter-fullscreen-button"
@@ -209,16 +220,20 @@ class OperationPanel extends React.Component<
             this.handleScreen();
           }}
         >
-          <span className="icon-fullscreen enter-fullscreen-icon"></span>
-          {StorageUtil.getReaderConfig("isFullscreen") !== "yes" ? (
-            <span className="enter-fullscreen-text">
-              <Trans>Enter Fullscreen</Trans>
-            </span>
-          ) : (
-            <span className="enter-fullscreen-text">
-              <Trans>Exit Fullscreen</Trans>
-            </span>
-          )}
+          <div className="operation-button-container">
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span className="icon-fullscreen enter-fullscreen-icon"></span>
+              {StorageUtil.getReaderConfig("isFullscreen") !== "yes" ? (
+                <span className="enter-fullscreen-text">
+                  <Trans>Enter Fullscreen</Trans>
+                </span>
+              ) : (
+                <span className="enter-fullscreen-text">
+                  <Trans>Exit Fullscreen</Trans>
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     );

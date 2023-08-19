@@ -3,6 +3,7 @@ import "./popupMenu.css";
 import PopupNote from "../popupNote";
 import PopupOption from "../popupOption";
 import PopupTrans from "../popupTrans";
+import NoteModel from "../../../model/Note";
 import { PopupMenuProps, PopupMenuStates } from "./interface";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import {
@@ -235,11 +236,19 @@ class PopupMenu extends React.Component<PopupMenuProps, PopupMenuStates> {
   renderHighlighters = async () => {
     let highlighters: any = this.props.notes;
     if (!highlighters) return;
-    let highlightersByChapter = highlighters.filter((item: any) => {
-      return (
-        item.chapterIndex === this.props.chapterDocIndex &&
-        item.bookKey === this.props.currentBook.key
-      );
+    let highlightersByChapter = highlighters.filter((item: NoteModel) => {
+      if (this.props.currentBook.format !== "PDF") {
+        return (
+          item.chapter ===
+            this.props.rendition.getChapterDoc()[this.props.chapterDocIndex]
+              .label && item.bookKey === this.props.currentBook.key
+        );
+      } else {
+        return (
+          item.chapterIndex === this.props.chapterDocIndex &&
+          item.bookKey === this.props.currentBook.key
+        );
+      }
     });
     let pageArea = document.getElementById("page-area");
     if (!pageArea) return;

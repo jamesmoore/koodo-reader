@@ -84,6 +84,12 @@ export const settingList = [
     propName: "isOpenInMain",
   },
   {
+    isElectron: false,
+    title: "Auto precache books after import",
+    desc: "Precache books after import to increase opening speed, Koodo will generate a precache version of the original book and save it into your library",
+    propName: "isPrecacheBook",
+  },
+  {
     isElectron: true,
     title: "Disable update notification",
     propName: "isDisableUpdate",
@@ -92,6 +98,11 @@ export const settingList = [
     isElectron: false,
     title: "Use first page as PDF cover",
     propName: "isPDFCover",
+  },
+  {
+    isElectron: false,
+    title: "Hide floating button in PDF reader",
+    propName: "isHideFloating",
   },
   {
     isElectron: true,
@@ -120,6 +131,9 @@ export const langList = [
   { label: "italiano", value: "it" },
   { label: "Nederlands", value: "nl" },
   { label: "বাংলা", value: "bn" },
+  { label: "български", value: "bg" },
+  { label: "bahasa Indonesia", value: "id" },
+  { label: "հայերեն", value: "hy" },
 ];
 
 export const searchList = [
@@ -167,6 +181,10 @@ export const readerSettingList = [
   {
     title: "Invert color",
     propName: "isInvert",
+  },
+  {
+    title: "Turn on Bionic Reading",
+    propName: "isBionic",
   },
   {
     title: "Hide footer",

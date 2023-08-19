@@ -5,7 +5,7 @@ import { NavListProps, NavListState } from "./interface";
 import DeleteIcon from "../../../components/deleteIcon";
 import toast from "react-hot-toast";
 import CFI from "epub-cfi-resolver";
-import StorageUtil from "../../../utils/serviceUtils/storageUtil";
+import RecordLocation from "../../../utils/readUtils/recordLocation";
 class NavList extends React.Component<NavListProps, NavListState> {
   constructor(props: NavListProps) {
     super(props);
@@ -15,6 +15,7 @@ class NavList extends React.Component<NavListProps, NavListState> {
   }
   //跳转到图书的指定位置
   async handleJump(cfi: string) {
+    //书签跳转
     if (!cfi) {
       toast(this.props.t("Wrong bookmark"));
       return;
@@ -57,13 +58,28 @@ class NavList extends React.Component<NavListProps, NavListState> {
           count: bookLocation.count,
           percentage: bookLocation.percentage,
           cfi: bookLocation.cfi,
+          page: bookLocation.page,
         })
       );
-      let style =
-        "background: " +
-        (StorageUtil.getReaderConfig("backgroundColor") || "#f3a6a68c");
-      this.props.htmlBook.rendition.highlightNode(bookLocation.text, style);
     }
+    this.handleDisplayBookmark();
+  }
+  handleDisplayBookmark() {
+    this.props.handleShowBookmark(false);
+    let bookLocation: {
+      text: string;
+      count: string;
+      chapterTitle: string;
+      chapterDocIndex: string;
+      chapterHref: string;
+      percentage: string;
+      cfi: string;
+    } = RecordLocation.getHtmlLocation(this.props.currentBook.key);
+    this.props.bookmarks.forEach((item) => {
+      if (item.cfi === JSON.stringify(bookLocation)) {
+        this.props.handleShowBookmark(true);
+      }
+    });
   }
   handleShowDelete = (index: number) => {
     this.setState({ deleteIndex: index });
