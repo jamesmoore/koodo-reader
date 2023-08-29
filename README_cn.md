@@ -33,7 +33,7 @@
 
 - 支持阅读格式：
   - EPUB (**.epub**)
-  - 扫描文档 (**.pdf**, **.djvu**)
+  - 扫描文档 (**.pdf**)
   - Kindle (**.azw3**, **.mobi**, **.azw**)
   - 纯文本 (**.txt**)
   - 漫画 (**.cbr**, **.cbz**, **.cbt**, **.cb7**)
@@ -58,7 +58,7 @@
 - 使用 Scoop 安装：
 
 ```shell
-scoop bucket add dorado https://github.com/chawyehsu/dorado
+scoop bucket add extras
 scoop install dorado/koodo-reader
 ```
 
@@ -108,7 +108,7 @@ flatpak run io.github.troyeguo.koodo-reader
 
 ## 运行源码
 
-请确保您电脑的 node 的版本为 14.x.x，已配置好 yarn，git 的运行环境。
+请确保您电脑已配置好 yarn，git 的运行环境。
 
 1. 将项目源码下载到本地
 

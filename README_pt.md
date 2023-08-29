@@ -32,7 +32,7 @@
 
 - Formatos suportados:
   - EPUB (**.epub**)
-  - Documento scaneados (**.pdf**, **.djvu**)
+  - Documento scaneados (**.pdf**)
   - Formato sem DRM (**.mobi**) e Kindle (**.azw3**, **.azw**)
   - Texto puro (**.txt**)
   - FictionBook (**.fb2**)
@@ -58,7 +58,7 @@
 - Instalar com o Scoop:
 
 ```shell
-scoop bucket add dorado https://github.com/chawyehsu/dorado
+scoop bucket add extras
 scoop install dorado/koodo-reader
 ```
 
@@ -111,7 +111,7 @@ flatpak run io.github.troyeguo.koodo-reader
 
 ## Desenvolver
 
-Certifique-se de ter instalado yarn e git, a versão, a versão do node deverá ser superior ou igual a 14.0.0.
+Certifique-se de ter instalado yarn e git, a versão.
 
 1. Baixe o repositório
 

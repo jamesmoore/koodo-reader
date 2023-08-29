@@ -4,7 +4,6 @@
 .delete-dialog-comfirm,
 .book-item-config,
 .book-cover-item-config,
-.side-menu-selector-container,
 .download-desk-button,
 .edit-dialog-comfirm,
 .change-location-button,
@@ -32,7 +31,6 @@
 .book-list-view {
   color: rgba(1, 121, 202, 1) !important;
 }
-.reading-progress-icon,
 .header-search-box,
 #jumpPage,
 #jumpChapter,

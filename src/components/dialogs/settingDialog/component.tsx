@@ -19,6 +19,8 @@ import {
 import { themeList } from "../../../constants/themeList";
 import toast from "react-hot-toast";
 import { openExternalUrl } from "../../../utils/serviceUtils/urlUtil";
+import ManagerUtil from "../../../utils/fileUtils/managerUtil";
+declare var window: any;
 class SettingDialog extends React.Component<
   SettingInfoProps,
   SettingInfoState
@@ -48,8 +50,9 @@ class SettingDialog extends React.Component<
       isPrecacheBook: StorageUtil.getReaderConfig("isPrecacheBook") === "yes",
       appSkin: StorageUtil.getReaderConfig("appSkin"),
       isUseBuiltIn: StorageUtil.getReaderConfig("isUseBuiltIn") === "yes",
-      isPDFCover: StorageUtil.getReaderConfig("isPDFCover") === "yes",
-      isHideFloating: StorageUtil.getReaderConfig("isHideFloating") === "yes",
+      isDisableCrop: StorageUtil.getReaderConfig("isDisableCrop") === "yes",
+      isDisablePDFCover:
+        StorageUtil.getReaderConfig("isDisablePDFCover") === "yes",
       currentThemeIndex: window._.findLastIndex(themeList, {
         name: StorageUtil.getReaderConfig("themeColor"),
       }),
@@ -120,11 +123,7 @@ class SettingDialog extends React.Component<
       StorageUtil.setReaderConfig("textColor", "rgba(0,0,0,1)");
     }
 
-    if (isElectron) {
-      window.require("electron").ipcRenderer.invoke("reload-main", "ping");
-    } else {
-      window.location.reload();
-    }
+    ManagerUtil.reloadManager();
   };
   changeFont = (font: string) => {
     let body = document.getElementsByTagName("body")[0];
@@ -203,11 +202,7 @@ class SettingDialog extends React.Component<
   handleTheme = (name: string, index: number) => {
     this.setState({ currentThemeIndex: index });
     StorageUtil.setReaderConfig("themeColor", name);
-    if (isElectron) {
-      window.require("electron").ipcRenderer.invoke("reload-main", "ping");
-    } else {
-      window.location.reload();
-    }
+    ManagerUtil.reloadManager();
   };
   handleMergeWord = () => {
     if (this.state.isOpenInMain && !this.state.isMergeWord) {
