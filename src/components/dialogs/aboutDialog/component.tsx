@@ -6,12 +6,13 @@ import { openExternalUrl } from "../../../utils/serviceUtils/urlUtil";
 import toast from "react-hot-toast";
 import {
   exportBooks,
+  exportDictionaryHistory,
   exportHighlights,
   exportNotes,
 } from "../../../utils/syncUtils/exportUtil";
 import "./aboutDialog.css";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
-
+declare var window: any;
 class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
   constructor(props: AboutDialogProps) {
     super(props);
@@ -115,7 +116,7 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
             <li
               className="sort-by-category-list"
               onClick={() => {
-                this.handleJump("https://github.com/troyeguo/koodo-reader");
+                this.handleJump("https://github.com/koodo-reader/koodo-reader");
               }}
             >
               <Trans>Github Repo</Trans>
@@ -165,7 +166,7 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
             this.state.isShowExportAll
               ? {
                   position: "absolute",
-                  left: "675px",
+                  left: "680px",
                   top: "250px",
                 }
               : { display: "none" }
@@ -232,6 +233,24 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
             }}
           >
             <Trans>Export All Highlights</Trans>
+          </li>
+          <li
+            className="sort-by-category-list"
+            onClick={async () => {
+              let dictHistory =
+                (await window.localforage.getItem("words")) || [];
+              if (dictHistory.length > 0) {
+                exportDictionaryHistory(dictHistory, [
+                  ...this.props.books,
+                  ...this.props.deletedBooks,
+                ]);
+                toast.success(this.props.t("Export Successfully"));
+              } else {
+                toast(this.props.t("Nothing to export"));
+              }
+            }}
+          >
+            <Trans>Export All Dictionary History</Trans>
           </li>
         </div>
       </>

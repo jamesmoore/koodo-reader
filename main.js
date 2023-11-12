@@ -15,7 +15,6 @@ const fs = require("fs");
 const configDir = app.getPath("userData");
 const { ra } = require("./edge-tts");
 const dirPath = path.join(configDir, "uploads");
-const { Blob } = require("buffer");
 let mainWin;
 const singleInstance = app.requestSingleInstanceLock();
 var filePath = null;
@@ -25,6 +24,7 @@ if (process.platform != "darwin" && process.argv.length >= 2) {
 let options = {
   width: 1050,
   height: 660,
+  backgroundColor: "#fff",
   webPreferences: {
     webSecurity: false,
     nodeIntegration: true,
@@ -155,6 +155,21 @@ const createMainWin = () => {
       properties: ["openDirectory"],
     });
     return path;
+  });
+  ipcMain.handle("get-url-content", async (event, config) => {
+    const axios = require("axios");
+    try {
+      const response = await axios.get(config.url, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   });
   ipcMain.on("storage-location", (event, arg) => {
     event.returnValue = path.join(dirPath, "data");

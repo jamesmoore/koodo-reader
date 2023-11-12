@@ -9,9 +9,6 @@ import { withRouter } from "react-router-dom";
 import RecordLocation from "../../utils/readUtils/recordLocation";
 import { isElectron } from "react-device-detect";
 import EmptyCover from "../emptyCover";
-import Parser from "html-react-parser";
-import * as DOMPurify from "dompurify";
-
 import { Trans } from "react-i18next";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import toast from "react-hot-toast";
@@ -26,6 +23,8 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
       left: 0,
       top: 0,
       direction: "horizontal",
+      desc: "",
+      isHover: false,
     };
   }
 
@@ -66,9 +65,9 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
       {
         left: x,
         top:
-          document.body.clientHeight - e.clientY > 300
+          document.body.clientHeight - e.clientY > 250
             ? e.clientY
-            : e.clientY - 300,
+            : e.clientY - 200,
       },
       () => {
         this.props.handleActionDialog(true);
@@ -136,6 +135,10 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
         ).percentage;
       }
     }
+    var htmlString = this.props.book.description;
+    var div = document.createElement("div");
+    div.innerHTML = htmlString;
+    var textContent = div.textContent || div.innerText;
     const actionProps = { left: this.state.left, top: this.state.top };
     return (
       <>
@@ -159,7 +162,7 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
                   : "00"}
                 {Math.floor(parseFloat(percentage) * 100) > 0 &&
                   Math.floor(parseFloat(percentage) * 100) < 100 && (
-                    <span className="reading-percentage-char">%</span>
+                    <span>%</span>
                   )}
               </div>
             </div>
@@ -175,6 +178,12 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
             className="book-cover-item-cover"
             onClick={() => {
               this.handleJump();
+            }}
+            onMouseEnter={() => {
+              this.setState({ isHover: true });
+            }}
+            onMouseLeave={() => {
+              this.setState({ isHover: false });
             }}
             style={
               StorageUtil.getReaderConfig("isDisableCrop") === "yes"
@@ -209,7 +218,7 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
               </div>
             ) : (
               <img
-                src={this.props.book.cover}
+                data-src={this.props.book.cover}
                 alt=""
                 style={
                   this.state.direction === "horizontal" ||
@@ -217,7 +226,7 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
                     ? { width: "100%" }
                     : { height: "100%" }
                 }
-                className="book-item-image"
+                className="lazy-image book-item-image"
                 onLoad={(res: any) => {
                   if (
                     res.target.naturalHeight / res.target.naturalWidth >
@@ -230,13 +239,40 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
                 }}
               />
             )}
-            {this.props.isSelectBook ? (
+            {this.props.isSelectBook || this.state.isHover ? (
               <span
                 className="icon-message book-selected-icon"
+                onMouseEnter={() => {
+                  this.setState({ isHover: true });
+                }}
+                onClick={(event) => {
+                  if (this.props.isSelectBook) {
+                    this.props.handleSelectedBooks(
+                      this.props.isSelected
+                        ? this.props.selectedBooks.filter(
+                            (item) => item !== this.props.book.key
+                          )
+                        : [...this.props.selectedBooks, this.props.book.key]
+                    );
+                  } else {
+                    this.props.handleSelectBook(true);
+                    this.props.handleSelectedBooks([this.props.book.key]);
+                  }
+                  this.setState({ isHover: false });
+                  event?.stopPropagation();
+                }}
                 style={
                   this.props.isSelected
-                    ? { right: "274px", top: "30px" }
-                    : { right: "274px", top: "30px", color: "#eee" }
+                    ? {
+                        right: "274px",
+                        top: "30px",
+                        opacity: 1,
+                      }
+                    : {
+                        right: "274px",
+                        top: "30px",
+                        color: "#eee",
+                      }
                 }
               ></span>
             ) : null}
@@ -253,11 +289,9 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
           </p>
           <div className="book-cover-item-desc">
             <Trans>Description</Trans>:&nbsp;
-            {this.props.book.description ? (
-              Parser(DOMPurify.sanitize(this.props.book.description))
-            ) : (
-              <Trans>Empty</Trans>
-            )}
+            <div className="book-cover-item-desc-detail">
+              {this.props.book.description ? textContent : <Trans>Empty</Trans>}
+            </div>
           </div>
         </div>
         {this.props.isOpenActionDialog &&

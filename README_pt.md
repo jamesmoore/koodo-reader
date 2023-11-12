@@ -1,6 +1,6 @@
 <div align="left">
 
-[简体中文](https://github.com/troyeguo/koodo-reader/blob/master/README_cn.md) | Português | [English](https://github.com/troyeguo/koodo-reader/blob/master/README.md)
+[简体中文](https://github.com/koodo-reader/koodo-reader/blob/master/README_cn.md) | Português | [English](https://github.com/koodo-reader/koodo-reader/blob/master/README.md)
 
 </div>
 
@@ -32,7 +32,7 @@
 
 - Formatos suportados:
   - EPUB (**.epub**)
-  - Documento scaneados (**.pdf**)
+  - Documento scaneados (**.pdf**, **.djvu**)
   - Formato sem DRM (**.mobi**) e Kindle (**.azw3**, **.azw**)
   - Texto puro (**.txt**)
   - FictionBook (**.fb2**)
@@ -53,13 +53,13 @@
 
 - Versão para computador:
   - Versão estável (Recomendada): [Baixar](https://koodo.960960.xyz/en)
-  - Versão do desenvolvedor: [Baixar](https://github.com/troyeguo/koodo-reader/releases/latest) ( Com novos recursos e correção de bugs, mas podendo ainda conter alguns problemas desconhecidos)
+  - Versão do desenvolvedor: [Baixar](https://github.com/koodo-reader/koodo-reader/releases/latest) ( Com novos recursos e correção de bugs, mas podendo ainda conter alguns problemas desconhecidos)
 - Versão para Web：[Pré-visualizar](https://reader.960960.xyz)
 - Instalar com o Scoop:
 
 ```shell
 scoop bucket add extras
-scoop install dorado/koodo-reader
+scoop install extras/koodo-reader
 ```
 
 - Instalar com o Winget:
@@ -116,7 +116,7 @@ Certifique-se de ter instalado yarn e git, a versão.
 1. Baixe o repositório
 
    ```
-   git clone https://github.com/troyeguo/koodo-reader.git
+   git clone https://github.com/koodo-reader/koodo-reader.git
    ```
 
 2. Entre no modo desktop

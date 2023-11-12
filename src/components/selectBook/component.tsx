@@ -7,10 +7,13 @@ import { withRouter } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   exportBooks,
+  exportDictionaryHistory,
   exportHighlights,
   exportNotes,
 } from "../../utils/syncUtils/exportUtil";
 import BookUtil from "../../utils/fileUtils/bookUtil";
+import ShelfUtil from "../../utils/readUtils/shelfUtil";
+declare var window: any;
 class SelectBook extends React.Component<BookListProps, BookListState> {
   constructor(props: BookListProps) {
     super(props);
@@ -19,7 +22,11 @@ class SelectBook extends React.Component<BookListProps, BookListState> {
       favoriteBooks: Object.keys(AddFavorite.getAllFavorite()).length,
     };
   }
-
+  handleFilterShelfBook = (items: BookModel[]) => {
+    return items.filter((item) => {
+      return ShelfUtil.getBookPosition(item.key).length === 0;
+    });
+  };
   render() {
     return (
       <div
@@ -34,6 +41,7 @@ class SelectBook extends React.Component<BookListProps, BookListState> {
             }
           }}
           className="book-manage-title"
+          style={{ color: "rgb(231, 69, 69)" }}
         >
           <Trans>{this.props.isSelectBook ? "Cancel" : ""}</Trans>
         </span>
@@ -145,6 +153,31 @@ class SelectBook extends React.Component<BookListProps, BookListState> {
             <span
               className="book-manage-title"
               onClick={async () => {
+                let selectedBooks = this.props.books.filter(
+                  (item: BookModel) =>
+                    this.props.selectedBooks.indexOf(item.key) > -1
+                );
+                let dictHistory =
+                  (await window.localforage.getItem("words")) || [];
+                dictHistory = dictHistory.filter(
+                  (item) =>
+                    selectedBooks.filter(
+                      (subitem) => subitem.key === item.bookKey
+                    ).length > 0
+                );
+                if (dictHistory.length > 0) {
+                  exportDictionaryHistory(dictHistory, selectedBooks);
+                  toast.success(this.props.t("Export Successfully"));
+                } else {
+                  toast(this.props.t("Nothing to export"));
+                }
+              }}
+            >
+              <Trans>Export Dictionary History</Trans>
+            </span>
+            <span
+              className="book-manage-title"
+              onClick={async () => {
                 if (
                   this.props.books.filter(
                     (item: BookModel) =>
@@ -217,17 +250,21 @@ class SelectBook extends React.Component<BookListProps, BookListState> {
               className="book-manage-title"
               onClick={() => {
                 if (
-                  this.props.selectedBooks.length === this.props.books.length
+                  this.props.selectedBooks.length ===
+                  this.handleFilterShelfBook(this.props.books).length
                 ) {
                   this.props.handleSelectedBooks([]);
                 } else {
                   this.props.handleSelectedBooks(
-                    this.props.books.map((item) => item.key)
+                    this.handleFilterShelfBook(this.props.books).map(
+                      (item) => item.key
+                    )
                   );
                 }
               }}
             >
-              {this.props.selectedBooks.length === this.props.books.length ? (
+              {this.props.selectedBooks.length ===
+              this.handleFilterShelfBook(this.props.books).length ? (
                 <Trans>Deselect All</Trans>
               ) : (
                 <Trans>Select All</Trans>

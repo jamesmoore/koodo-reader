@@ -6,10 +6,12 @@ import { Trans } from "react-i18next";
 import { NavigationPanelProps, NavigationPanelState } from "./interface";
 import SearchBox from "../../../components/searchBox";
 import Parser from "html-react-parser";
+import * as DOMPurify from "dompurify";
 import EmptyCover from "../../../components/emptyCover";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
-import * as DOMPurify from "dompurify";
+
 import CFI from "epub-cfi-resolver";
+import { getIframeDoc } from "../../../utils/serviceUtils/docUtil";
 
 class NavigationPanel extends React.Component<
   NavigationPanelProps,
@@ -79,11 +81,7 @@ class NavigationPanel extends React.Component<
                   bookLocation.chapterTitle
                 );
                 let cfiObj = new CFI(bookLocation.cfi);
-                let pageArea = document.getElementById("page-area");
-                if (!pageArea) return;
-                let iframe = pageArea.getElementsByTagName("iframe")[0];
-                if (!iframe) return;
-                let doc: any = iframe.contentDocument;
+                let doc: any = getIframeDoc();
                 if (!doc) {
                   return;
                 }
@@ -209,10 +207,7 @@ class NavigationPanel extends React.Component<
               <span className="icon-close"></span>
             </div>
 
-            <div
-              className="header-search-container"
-              style={this.state.isSearch ? { left: 40 } : {}}
-            >
+            <div className="header-search-container">
               <div
                 className="navigation-search-title"
                 style={{ height: "20px", margin: "0px 25px 13px" }}

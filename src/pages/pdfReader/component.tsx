@@ -10,6 +10,9 @@ import { Toaster } from "react-hot-toast";
 import { handleLinkJump } from "../../utils/readUtils/linkUtil";
 import { pdfMouseEvent } from "../../utils/serviceUtils/mouseEvent";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
+import PopupBox from "../../components/popups/popupBox";
+import { renderHighlighters } from "../../utils/serviceUtils/noteUtil";
+import { getPDFIframeDoc } from "../../utils/serviceUtils/docUtil";
 declare var window: any;
 class Viewer extends React.Component<ViewerProps, ViewerState> {
   constructor(props: ViewerProps) {
@@ -68,11 +71,11 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         await handleLinkJump(event);
       });
 
-      doc.document.addEventListener("mouseup", () => {
+      doc.document.addEventListener("mouseup", (event) => {
         if (this.state.isDisablePopup) return;
         if (!doc!.getSelection() || doc!.getSelection().rangeCount === 0)
           return;
-
+        event.preventDefault();
         var rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
         this.setState({
           rect,
@@ -83,15 +86,43 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         if (!this.state.isDisablePopup) return;
         if (!doc!.getSelection() || doc!.getSelection().rangeCount === 0)
           return;
-
+        event.preventDefault();
         var rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
         this.setState({
           rect,
         });
       });
+
+      setTimeout(() => {
+        this.handleHighlight();
+        let iWin = getPDFIframeDoc();
+        if (!iWin) return;
+        if (!iWin.PDFViewerApplication.eventBus) return;
+        iWin.PDFViewerApplication.eventBus.on(
+          "pagechanging",
+          this.handleHighlight
+        );
+      }, 3000);
     };
   }
+  handleHighlight = () => {
+    let highlighters: any = this.props.notes;
+    if (!highlighters) return;
+    let highlightersByChapter = highlighters;
 
+    renderHighlighters(
+      highlightersByChapter,
+      this.props.currentBook.format,
+      this.handleNoteClick
+    );
+  };
+  handleNoteClick = (event: Event) => {
+    if (event && event.target) {
+      this.props.handleNoteKey((event.target as any).dataset.key);
+      this.props.handleMenuMode("note");
+      this.props.handleOpenMenu(true);
+    }
+  };
   render() {
     return (
       <div className="ebook-viewer" id="page-area">
@@ -109,6 +140,23 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
             }}
           />
         )}
+        {this.props.isOpenMenu &&
+        (this.props.menuMode === "dict" ||
+          this.props.menuMode === "trans" ||
+          this.props.menuMode === "note") ? (
+          <PopupBox
+            {...{
+              rendition: {
+                on: (status: string, callback: any) => {
+                  callback();
+                },
+              },
+              rect: this.state.rect,
+              chapterDocIndex: 0,
+              chapter: "0",
+            }}
+          />
+        ) : null}
         <iframe
           src={this.state.href}
           title={this.state.title}

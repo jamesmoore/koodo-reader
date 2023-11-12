@@ -7,6 +7,7 @@ import StorageUtil from "../../utils/serviceUtils/storageUtil";
 import { openExternalUrl } from "../../utils/serviceUtils/urlUtil";
 import ShelfUtil from "../../utils/readUtils/shelfUtil";
 import DeletePopup from "../../components/dialogs/deletePopup";
+import { Trans } from "react-i18next";
 class Sidebar extends React.Component<SidebarProps, SidebarState> {
   constructor(props: SidebarProps) {
     super(props);
@@ -91,7 +92,7 @@ class Sidebar extends React.Component<SidebarProps, SidebarState> {
             {this.state.index === index && this.props.mode !== "shelf" ? (
               <div className="side-menu-selector-container"></div>
             ) : null}
-            {this.state.hoverIndex === index && this.props.mode !== "shelf" ? (
+            {this.state.hoverIndex === index ? (
               <div className="side-menu-hover-container"></div>
             ) : null}
             <div
@@ -155,6 +156,7 @@ class Sidebar extends React.Component<SidebarProps, SidebarState> {
                 this.props.handleMode("home");
               }
               this.setState({ index: -1 });
+              this.props.history.push("/manager/shelf");
             }}
             onMouseEnter={() => {
               this.handleShelfHover(index);
@@ -190,12 +192,12 @@ class Sidebar extends React.Component<SidebarProps, SidebarState> {
                 <span
                   className={
                     this.props.shelfIndex === index
-                      ? `icon-bookshelf-line  active-icon`
-                      : `icon-bookshelf-line`
+                      ? `icon-bookshelf-line  active-icon sidebar-shelf-icon`
+                      : `icon-bookshelf-line sidebar-shelf-icon`
                   }
                   style={
                     this.props.isCollapsed
-                      ? { position: "relative", marginLeft: "-9px" }
+                      ? { position: "relative", marginLeft: "-8px" }
                       : {}
                   }
                 ></span>
@@ -266,7 +268,9 @@ class Sidebar extends React.Component<SidebarProps, SidebarState> {
                   : { border: "none" }
               }
             >
-              <div className="side-shelf-title">我的书架</div>
+              <div className="side-shelf-title">
+                <Trans>Shelf</Trans>
+              </div>
               <span
                 className="icon-dropdown side-shelf-title-icon"
                 onClick={() => {
@@ -286,7 +290,7 @@ class Sidebar extends React.Component<SidebarProps, SidebarState> {
               <ul className="side-shelf-container">{renderSideShelf()}</ul>
             )}
           </div>
-        </div>{" "}
+        </div>
         {this.state.isOpenDelete && <DeletePopup {...deletePopupProps} />}
       </>
     );

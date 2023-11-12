@@ -19,7 +19,15 @@ class PDFWidget extends React.Component<PDFWidgetProps, PDFWidgetState> {
     return (
       <div
         className="back-main-container"
-        style={this.state.isHover ? {} : { width: "30px", left: "-20px" }}
+        style={
+          this.state.isHover
+            ? {}
+            : {
+                width: "30px",
+                left: "-41px",
+                animation: "shrink 0.2s forwards",
+              }
+        }
         onMouseEnter={() => {
           this.setState({ isHover: true });
         }}
@@ -73,7 +81,7 @@ class PDFWidget extends React.Component<PDFWidgetProps, PDFWidgetState> {
               .querySelector(".ebook-viewer")
               ?.setAttribute(
                 "style",
-                "height:100%; overflow: hidden; filter: invert(100%);"
+                "height:100%; overflow: hidden; filter: invert(100%) !important;"
               );
           }}
           style={this.state.isHover ? {} : { display: "none" }}

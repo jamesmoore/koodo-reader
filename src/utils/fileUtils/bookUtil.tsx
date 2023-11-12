@@ -5,6 +5,8 @@ import BookModel from "../../model/Book";
 import toast from "react-hot-toast";
 import { getPDFMetadata } from "./pdfUtil";
 import { copyArrayBuffer } from "../commonUtil";
+import iconv from "iconv-lite";
+import { Buffer } from "buffer";
 declare var window: any;
 
 class BookUtil {
@@ -160,7 +162,9 @@ class BookUtil {
       return;
     }
     if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
-      history.push(BookUtil.getBookUrl(book) + `?title=${book.name}`);
+      history.push(
+        BookUtil.getBookUrl(book) + `?title=${book.name}&file=${book.key}`
+      );
       return;
     }
     let ref = book.format.toLowerCase();
@@ -170,9 +174,9 @@ class BookUtil {
       ipcRenderer.invoke("open-book", {
         url: `${window.location.href.split("#")[0]}#/${ref}/${book.key}?title=${
           book.name
-        }`,
+        }&file=${book.key}`,
         isMergeWord:
-          book.format === "PDF"
+          book.format === "PDF" || book.format === "DJVU"
             ? "no"
             : StorageUtil.getReaderConfig("isMergeWord"),
         isFullscreen: StorageUtil.getReaderConfig("isAutoFullscreen"),
@@ -182,7 +186,7 @@ class BookUtil {
       window.open(
         `${window.location.href.split("#")[0]}#/${ref}/${book.key}?title=${
           book.name
-        }`
+        }&file=${book.key}`
       );
     }
   }
@@ -244,9 +248,10 @@ class BookUtil {
     } else if (format === "EPUB") {
       rendition = new window.Kookit.EpubRender(result, readerMode);
     } else if (format === "TXT") {
-      rendition = new window.Kookit.TxtRender(result, readerMode, charset);
+      let text = iconv.decode(Buffer.from(result), charset || "utf8");
+      rendition = new window.Kookit.TxtRender(text, readerMode);
     } else if (format === "MD") {
-      rendition = new window.Kookit.EpubRender(result, readerMode);
+      rendition = new window.Kookit.MdRender(result, readerMode);
     } else if (format === "FB2") {
       rendition = new window.Kookit.Fb2Render(result, readerMode);
     } else if (format === "DOCX") {
@@ -370,7 +375,7 @@ class BookUtil {
           cover = metadata.cover;
           break;
         case "txt":
-          metadata = await rendition.getMetadata();
+          metadata = await rendition.getMetadata(file_content);
           charset = metadata.charset;
           break;
         default:
@@ -378,7 +383,10 @@ class BookUtil {
       }
       let format = extension.toUpperCase();
       key = new Date().getTime() + "";
-      if (StorageUtil.getReaderConfig("isPrecacheBook") === "yes") {
+      if (
+        StorageUtil.getReaderConfig("isPrecacheBook") === "yes" &&
+        extension !== "pdf"
+      ) {
         let cache = await rendition.preCache(file_content);
         if (cache !== "err") {
           BookUtil.addBook("cache-" + key, cache);

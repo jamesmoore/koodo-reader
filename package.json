@@ -1,7 +1,7 @@
 {
   "name": "koodo-reader",
   "main": "main.js",
-  "version": "1.5.7",
+  "version": "1.6.0",
   "description": "A cross-platform ebook reader",
   "author": {
     "name": "App by Troye",
@@ -11,7 +11,7 @@
     "node": "18.x",
     "npm": ">=6.0.0"
   },
-  "repository": "https://github.com/troyeguo/koodo-reader",
+  "repository": "https://github.com/koodo-reader/koodo-reader",
   "private": false,
   "resolutions": {
     "//": "See https://github.com/facebook/create-react-app/issues/11773",
@@ -22,6 +22,7 @@
     "adm-zip": "^0.5.2",
     "axios": "^0.19.2",
     "bing-translate-api": "^2.7.0",
+    "buffer": "^6.0.3",
     "copy-text-to-clipboard": "^2.2.0",
     "dompurify": "^3.0.1",
     "electron-is-dev": "^1.1.0",
@@ -30,14 +31,18 @@
     "font-list": "^1.4.5",
     "fs-extra": "^9.1.0",
     "howler": "^2.2.3",
+    "iconv-lite": "^0.6.3",
     "react-hot-toast": "^2.1.1",
     "request": "^2.88.2",
     "webdav": "^3.6.2",
     "webdav-fs": "^3.0.0",
+    "wink-lemmatizer": "^3.0.4",
+    "ws": "^8.13.0",
     "zip-a-folder": "^0.0.12"
   },
   "devDependencies": {
     "@types/i18next": "^13.0.0",
+    "@types/iconv-lite": "^0.0.1",
     "@types/md5": "^2.2.0",
     "@types/node": "^13.13.2",
     "@types/react": "17.0.2",
@@ -47,6 +52,7 @@
     "@types/react-redux": "^7.1.7",
     "@types/react-router-dom": "^5.1.6",
     "@types/spark-md5": "^3.0.2",
+    "@types/ws": "^8.5.5",
     "classnames": "^2.2.6",
     "concurrently": "^5.0.1",
     "cross-env": "^6.0.3",
@@ -103,7 +109,9 @@
       "buildResources": "assets"
     },
     "publish": {
-      "provider": "github"
+      "provider": "github",
+      "repo": "koodo-reader",
+      "owner": "koodo-reader"
     },
     "fileAssociations": [
       {
@@ -117,6 +125,12 @@
         "icon": "assets/icons/pdf",
         "role": "Viewer",
         "mimeType": "application/pdf"
+      },
+      {
+        "ext": "djvu",
+        "icon": "assets/icons/pdf",
+        "role": "Viewer",
+        "mimeType": "image/vnd.djvu"
       },
       {
         "ext": "mobi",

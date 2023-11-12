@@ -15,12 +15,13 @@ import { getHightlightCoords } from "../../../utils/fileUtils/pdfUtil";
 import { getIframeDoc } from "../../../utils/serviceUtils/docUtil";
 import { openExternalUrl } from "../../../utils/serviceUtils/urlUtil";
 import { isElectron } from "react-device-detect";
+import { renderHighlighters } from "../../../utils/serviceUtils/noteUtil";
 
 declare var window: any;
 
 class PopupOption extends React.Component<PopupOptionProps> {
   handleNote = () => {
-    this.props.handleChangeDirection(false);
+    // this.props.handleChangeDirection(false);
     this.props.handleMenuMode("note");
   };
   handleCopy = () => {
@@ -45,6 +46,18 @@ class PopupOption extends React.Component<PopupOptionProps> {
     this.props.handleMenuMode("trans");
     this.props.handleOriginalText(getSelection() || "");
   };
+  handleDict = () => {
+    if (!isElectron) {
+      toast(
+        this.props.t(
+          "Koodo Reader's web version are limited by the browser, for more powerful features, please download the desktop version."
+        )
+      );
+      return;
+    }
+    this.props.handleMenuMode("dict");
+    this.props.handleOriginalText(getSelection() || "");
+  };
   handleDigest = () => {
     let bookKey = this.props.currentBook.key;
     let cfi = "";
@@ -67,7 +80,7 @@ class PopupOption extends React.Component<PopupOptionProps> {
     if (!pageArea) return;
     let iframe = pageArea.getElementsByTagName("iframe")[0];
     if (!iframe) return;
-    let doc = iframe.contentDocument;
+    let doc = getIframeDoc();
     if (!doc) return;
     let charRange;
     if (this.props.currentBook.format !== "PDF") {
@@ -104,8 +117,42 @@ class PopupOption extends React.Component<PopupOptionProps> {
       this.props.handleOpenMenu(false);
       toast.success(this.props.t("Add Successfully"));
       this.props.handleFetchNotes();
-      this.props.handleMenuMode("highlight");
+      this.props.handleMenuMode("");
+      this.handleHighlight();
     });
+  };
+  handleHighlight = () => {
+    let highlighters: any = this.props.notes;
+    if (!highlighters) return;
+    let highlightersByChapter = highlighters.filter((item: Note) => {
+      if (this.props.currentBook.format !== "PDF") {
+        return (
+          (item.chapter ===
+            this.props.htmlBook.rendition.getChapterDoc()[
+              this.props.chapterDocIndex
+            ].label ||
+            item.chapterIndex === this.props.chapterDocIndex) &&
+          item.bookKey === this.props.currentBook.key
+        );
+      } else {
+        return (
+          item.chapterIndex === this.props.chapterDocIndex &&
+          item.bookKey === this.props.currentBook.key
+        );
+      }
+    });
+    renderHighlighters(
+      highlightersByChapter,
+      this.props.currentBook.format,
+      this.handleNoteClick
+    );
+  };
+  handleNoteClick = (event: Event) => {
+    if (event && event.target) {
+      this.props.handleNoteKey((event.target as any).dataset.key);
+      this.props.handleMenuMode("note");
+      this.props.handleOpenMenu(true);
+    }
   };
   handleJump = (url: string) => {
     openExternalUrl(url);
@@ -213,12 +260,14 @@ class PopupOption extends React.Component<PopupOptionProps> {
                         this.handleSearchBook();
                         break;
                       case 5:
-                        this.handleSearchInternet();
+                        this.handleDict();
                         break;
                       case 6:
+                        this.handleSearchInternet();
+                        break;
+                      case 7:
                         this.handleSpeak();
                         break;
-
                       default:
                         break;
                     }

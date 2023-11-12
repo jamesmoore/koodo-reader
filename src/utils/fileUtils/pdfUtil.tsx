@@ -124,12 +124,14 @@ export const removePDFHighlight = (
   var pageIndex = selected.page;
   if (!iWin.PDFViewerApplication.pdfViewer) return;
   var page = iWin.PDFViewerApplication.pdfViewer.getPageView(pageIndex);
-  if (page && page.div && page.textLayer && page.textLayer.div) {
+  if (page && page.div && page.textLayer && page.textLayer.textLayerDiv) {
     var pageElement =
-      colorCode.indexOf("color") > -1 ? page.textLayer.div : page.div;
+      colorCode.indexOf("color") > -1
+        ? page.textLayer.textLayerDiv
+        : page.textLayerDiv;
     let noteElements = pageElement.querySelectorAll(".pdf-note");
-    noteElements.forEach((item: Element) => {
-      if (item.getAttribute("key") === noteKey) {
+    noteElements.forEach((item: any) => {
+      if (item.dataset.key === noteKey) {
         item.parentNode?.removeChild(item);
       }
     });
@@ -146,9 +148,9 @@ export const showPDFHighlight = (
   var pageIndex = selected.page;
   if (!iWin.PDFViewerApplication.pdfViewer) return;
   var page = iWin.PDFViewerApplication.pdfViewer.getPageView(pageIndex);
-  if (page && page.div && page.textLayer && page.textLayer.div) {
+  if (page && page.div && page.textLayer && page.textLayer.textLayerDiv) {
     var pageElement =
-      colorCode.indexOf("color") > -1 ? page.textLayer.div : page.div;
+      colorCode.indexOf("color") > -1 ? page.textLayer.textLayerDiv : page.div;
 
     var viewport = page.viewport;
     selected.coords.forEach((rect) => {
@@ -175,7 +177,7 @@ export const showPDFHighlight = (
           Math.abs(bounds[1] - bounds[3]) +
           "px; z-index:0;"
       );
-      el?.setAttribute("key", noteKey);
+      el?.setAttribute("data-key", noteKey);
       el?.setAttribute("class", "pdf-note");
       el?.addEventListener("click", (event: any) => {
         handlePDFClick(event);
